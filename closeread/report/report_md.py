@@ -106,14 +106,23 @@ def render_report_md(
     a(f"- Responses ending STOP: {total_stop} of {total_resp} ({total_stop / total_resp:.1%})." if total_resp else "- No responses collected.")
     a("- Runs in this report:")
     a("")
-    a("| run_id | pass | model | prompt_version | canary | records |")
-    a("|---|---|---|---|---|---|")
+    a("| run_id | pass | model | prompt_version | canary | records | tokens in/out | cost USD |")
+    a("|---|---|---|---|---|---|---|---|")
     run_records = Counter(r["run_id"] for r in records)
+    from closeread.extract.batch import RATES
+
+    total_cost = 0.0
     for s in summaries:
+        rate_in, rate_out = RATES.get(s["model"], (0, 0))
+        cost = (s.get("tokens_in", 0) * rate_in + s.get("tokens_out", 0) * rate_out) / 1e6
+        total_cost += cost
         a(
             f"| {s['run_id']} | {s['pass_name']} | {s['model']} | {s['prompt_version']} | "
-            f"{'passed' if s.get('canary_passed') else 'FAILED/SKIPPED'} | {run_records.get(s['run_id'], 0)} |"
+            f"{'passed' if s.get('canary_passed') else 'FAILED/SKIPPED'} | {run_records.get(s['run_id'], 0)} | "
+            f"{s.get('tokens_in', 0):,}/{s.get('tokens_out', 0):,} | {cost:.2f} |"
         )
+    a("")
+    a(f"- Total extraction cost across these runs, at the batch rates in the design: about {total_cost:.2f} USD.")
     a("")
     a(f"- Human-labelled gold records: {n_labels} (target 150; see §11.3).")
     a("- Rejected and unaligned records are retained on disk with status fields; nothing is deleted.")
