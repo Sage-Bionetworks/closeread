@@ -15,11 +15,14 @@ def main() -> None:
 @main.command()
 @click.option("--community", required=True)
 @click.option("--citing", is_flag=True, help="Acquire the citing corpus (tiers A-D) instead of the seed corpus.")
-def acquire(community: str, citing: bool) -> None:
+@click.option("--tier-c", is_flag=True, help="Fetch pending preprints from the requester-pays buckets.")
+def acquire(community: str, citing: bool, tier_c: bool) -> None:
     """Stage 1: OpenAlex metadata, then full text."""
-    from closeread.acquire import acquire_citing, acquire_corpus
+    from closeread.acquire import acquire_citing, acquire_corpus, acquire_tier_c
 
-    if citing:
+    if tier_c:
+        acquire_tier_c(load_community(community), Settings())
+    elif citing:
         acquire_citing(load_community(community), Settings())
     else:
         acquire_corpus(load_community(community), Settings())

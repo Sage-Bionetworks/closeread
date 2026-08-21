@@ -125,6 +125,71 @@ def parsed_dir(settings: Settings, community: str) -> Path:
     return settings.community_dir(community) / "parsed"
 
 
+def acquire_tier_c(config: CommunityConfig, settings: Settings, log=print) -> None:
+    """Tier C: fetch pending bioRxiv/medRxiv preprints from the requester-pays
+    buckets (spec §5.1). Scans month folders implied by posting dates, then
+    extracts only the JATS entry per package. Logs bytes transferred."""
+    from collections import defaultdict
+
+    from closeread.acquire import biorxiv as brx
+
+    out_dir = settings.community_dir(config.community)
+    docs = list(read_jsonl(out_dir / "documents.jsonl"))
+    pending = [
+        d for d in docs
+        if d.get("oa_status") == "preprint_requester_pays_pending" and d.get("doi") and d.get("pub_date")
+    ]
+    if not pending:
+        log("no tier-C preprints pending")
+        return
+    profile = config.aws_profile_requester_pays or "htan-dev"
+    s3 = brx.requester_pays_client(profile)
+    meter = brx.TransferMeter()
+    fulltext_dir = out_dir / "raw" / "fulltext"
+    fulltext_dir.mkdir(parents=True, exist_ok=True)
+
+    by_month: dict[str, dict[str, dict]] = defaultdict(dict)  # prefix -> article_id -> doc row
+    for d in pending:
+        by_month[brx.month_prefix(d["pub_date"])][brx.article_id_from_doi(d["doi"])] = d
+
+    fetched: dict[str, str] = {}  # doc_id -> filename
+    for bucket in (brx.BIORXIV_BUCKET, brx.MEDRXIV_BUCKET):
+        remaining_months = {
+            prefix: {aid: d for aid, d in wanted.items() if d["doc_id"] not in fetched}
+            for prefix, wanted in by_month.items()
+        }
+        remaining_months = {p: w for p, w in remaining_months.items() if w}
+        if not remaining_months:
+            break
+        log(f"scanning {bucket}: {sum(len(w) for w in remaining_months.values())} preprints across {len(remaining_months)} months")
+        for prefix, wanted in sorted(remaining_months.items()):
+            try:
+                found = brx.scan_month(s3, bucket, prefix, set(wanted), meter, log=log)
+            except Exception as exc:  # noqa: BLE001 — a bad month must not stop the stage
+                log(f"  {bucket}/{prefix}: scan failed: {exc}")
+                continue
+            for aid, entry in found.items():
+                doc = wanted[aid]
+                try:
+                    xml = brx.fetch_entry_xml(s3, bucket, entry, meter)
+                except Exception as exc:  # noqa: BLE001
+                    log(f"  fetch failed {entry.key}: {exc}")
+                    continue
+                dest = fulltext_dir / f"{doc['doc_id']}.preprint.xml"
+                dest.write_bytes(xml)
+                fetched[doc["doc_id"]] = dest.name
+
+    for d in docs:
+        if d["doc_id"] in fetched:
+            d["oa_status"] = "fulltext"
+            d["source_version"] = "meca"
+    write_jsonl(out_dir / "documents.jsonl", docs)
+    log(
+        f"tier C: fetched {len(fetched)} of {len(pending)} pending preprints; "
+        f"{meter.requests:,} requester-pays requests, {meter.bytes / 1e9:.2f} GB transferred"
+    )
+
+
 CITING_WORK_FIELDS = (
     "id,doi,title,publication_year,publication_date,type,ids,"
     "primary_location,authorships,abstract_inverted_index,referenced_works"

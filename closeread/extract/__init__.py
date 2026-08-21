@@ -110,7 +110,10 @@ def _anchor_windows(
         parsed = load_parsed(parsed_path)
         anchors = identity_anchors(parsed.text, config)
         anchors += accession_anchors(parsed.text, config, corpus_accessions)
-        xml_path = fulltext_dir / f"{meta['pmcid']}.{meta['source_version']}.xml"
+        if meta.get("pmcid") and meta.get("source_version") != "meca":
+            xml_path = fulltext_dir / f"{meta['pmcid']}.{meta['source_version']}.xml"
+        else:
+            xml_path = fulltext_dir / f"{meta['doc_id']}.preprint.xml"
         if xml_path.exists():
             anchors += citation_anchors(xml_path, parsed, corpus_dois, corpus_pmids)
         merged = merge_anchor_windows(anchors, len(parsed.text), radius)

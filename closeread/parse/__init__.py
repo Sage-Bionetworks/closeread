@@ -33,14 +33,17 @@ def run_parse(config, settings, log=print) -> dict[str, int]:
 
     counts = {"parsed": 0, "skipped_no_fulltext": 0, "failed": 0, "cached": 0}
     for doc in read_jsonl(out_dir / "documents.jsonl"):
-        if doc.get("oa_status") != "fulltext" or not doc.get("pmcid"):
+        if doc.get("oa_status") != "fulltext":
             counts["skipped_no_fulltext"] += 1
             continue
         dest = parsed_dir / f"{doc['doc_id']}.json"
         if dest.exists():
             counts["cached"] += 1
             continue
-        xml_path = fulltext_dir / f"{doc['pmcid']}.{doc['source_version']}.xml"
+        if doc.get("pmcid") and doc.get("source_version") != "meca":
+            xml_path = fulltext_dir / f"{doc['pmcid']}.{doc['source_version']}.xml"
+        else:
+            xml_path = fulltext_dir / f"{doc['doc_id']}.preprint.xml"
         try:
             parsed = parse_jats(xml_path.read_bytes())
         except Exception as exc:  # parse failure: log, skip, count
