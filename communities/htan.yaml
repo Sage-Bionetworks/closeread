@@ -1,0 +1,16 @@
+# Community configuration for HTAN. Spec §9.3.
+community: htan
+display_name: Human Tumor Atlas Network
+corpus:
+  seed: data/corpus_seed.csv
+  group_by: htan_centre
+identity_strings: ["HTAN", "Human Tumor Atlas Network"]
+accession_patterns:
+  synapse: 'syn\d{7,9}'
+  dbgap: 'phs\d{6}'
+  internal: 'HTA\d{1,2}[_-]\d+'
+  geo: 'GSE\d{4,7}'
+  sra: 'SR[APRSX]\d{6,9}'
+portals: ["humantumoratlas.org", "data.humantumoratlas.org"]
+passes: [availability, measurement, analysis, provenance, abstract]
+aws_profile_requester_pays: htan-dev
