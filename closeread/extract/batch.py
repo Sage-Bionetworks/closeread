@@ -96,10 +96,18 @@ def estimate(lines: list[dict[str, Any]], model: str) -> CostEstimate:
     return CostEstimate(len(lines), tokens_in, tokens_out, cost)
 
 
-def _client():
-    from google import genai
+_CLIENT = None
 
-    return genai.Client(api_key=gemini_api_key())
+
+def _client():
+    """Module-cached client: a temporary Client can be garbage-collected
+    mid-call, closing its httpx session under retry."""
+    global _CLIENT
+    if _CLIENT is None:
+        from google import genai
+
+        _CLIENT = genai.Client(api_key=gemini_api_key())
+    return _CLIENT
 
 
 def runs_dir(settings: Settings, community: str) -> Path:
