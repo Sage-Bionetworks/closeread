@@ -74,8 +74,8 @@ def render_f4(gold_dir: Path, figures_dir: Path, run_ids: list[str]) -> dict:
     ax.spines[["top", "right"]].set_visible(False)
     ax.set_xlabel("documents", fontsize=8, color=MUTED)
     ax.set_title(
-        f"F4 — Engagement-kind combinations (n = {n_docs} citing documents with engagement records; "
-        f"{judged_share:.0%} of records judged)",
+        f"F4 — Engagement-kind combinations\n(n = {n_docs} citing documents with engagement "
+        f"records; {judged_share:.0%} of records judged)",
         loc="left", fontsize=9.5, color=INK,
     )
     fig.tight_layout()
@@ -208,7 +208,7 @@ def render_f6(
         ("citing works enumerated", len(citing)),
         ("with full text", len(full)),
         ("with a regex candidate", len(cand_docs & full)),
-        ("data reusers (model)", len(reusers)),
+        ("data reusers (model, non-rejected)", len(reusers)),
         ("data reusers (judge-confirmed)", len(confirmed_reusers)),
         ("reusers depositing derived data", len(derived)),
     ]
