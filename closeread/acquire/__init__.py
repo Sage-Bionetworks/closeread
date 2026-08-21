@@ -138,6 +138,34 @@ def _backfill_abstracts(documents: list[Document], settings: Settings, log=print
             n += 1
     log(f"abstract backfill via PubMed: {n} of {len(targets)}")
 
+    # Crossref fallback for works with a DOI but no PubMed abstract.
+    import re as _re
+    import time as _time
+
+    import httpx as _httpx
+
+    rest = [d for d in documents if d.oa_status != "fulltext" and not d.abstract and d.doi]
+    if not rest:
+        return
+    strip_tags = _re.compile(r"<[^>]+>")
+    n_cr = 0
+    with _httpx.Client(
+        timeout=30, headers={"User-Agent": f"closeread (mailto:{settings.openalex_mailto})"}
+    ) as client:
+        for d in rest:
+            try:
+                resp = client.get(f"https://api.crossref.org/works/{d.doi}")
+                if resp.status_code == 200:
+                    abstract = resp.json().get("message", {}).get("abstract")
+                    if abstract:
+                        d.abstract = strip_tags.sub(" ", abstract).strip()
+                        d.oa_status = "abstract_only"
+                        n_cr += 1
+            except _httpx.HTTPError:
+                pass
+            _time.sleep(0.05)
+    log(f"abstract backfill via Crossref: {n_cr} of {len(rest)}")
+
 
 def parsed_dir(settings: Settings, community: str) -> Path:
     return settings.community_dir(community) / "parsed"
