@@ -52,9 +52,11 @@ for registered Synapse users):
 | [syn76993190](https://www.synapse.org/#!Synapse:syn76993190) `figures` | eight figures (SVG + PNG) with backing CSVs |
 | [syn76993191](https://www.synapse.org/#!Synapse:syn76993191) `runs` | per-run summaries (models, tokens, alignment, attribute population) |
 
-Raw batch responses and fetched full-text XML stay local (`out/htan/raw/`,
-immutable): the XML is third-party publisher content and is re-fetchable from
-its sources.
+The raw layer (`out/htan/raw/`: fetched full-text XML and batch responses) and
+the bronze layer stay local: full text is third-party publisher content that
+must not be redistributed, and it is re-fetchable from its sources. The
+published silver/gold layers carry only quotation-scale excerpts with
+character offsets.
 
 See `docs/` for credentials, pass definitions, and adding a community. The
 full design specification lives outside this repo (see `CLAUDE.md`).
