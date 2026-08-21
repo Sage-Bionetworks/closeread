@@ -68,6 +68,19 @@ def run_collect(run_id: str, settings: Settings, log=print) -> dict[str, Any]:
                 parsed_docs[doc_id] = load_parsed(p)
         scope = EvidenceScope.full_text
 
+    # Candidate spans per doc, for candidate_support (§8.3). Candidates locate
+    # text; they never decide meaning.
+    candidate_spans: dict[str, list[tuple[int, int]]] = {}
+    cand_path = out_dir / "candidates.jsonl"
+    if cand_path.exists():
+        from closeread.jsonl import read_jsonl as _read
+
+        for c in _read(cand_path):
+            candidate_spans.setdefault(c["doc_id"], []).append((c["char_start"], c["char_end"]))
+
+    def has_candidate_support(doc_id: str, start: int, end: int) -> bool:
+        return any(start <= cs and ce <= end for cs, ce in candidate_spans.get(doc_id, []))
+
     stamp = {
         "run_id": run_id,
         "community": community,
@@ -145,6 +158,7 @@ def run_collect(run_id: str, settings: Settings, log=print) -> dict[str, Any]:
                         alignment_status=aligned.status,
                         attributes=attrs,
                         enum_drift=compiled.enum_drift(cls_name, attrs),
+                        candidate_support=has_candidate_support(doc_id, aligned.start, aligned.end),
                         evidence_scope=scope,
                         **stamp,
                     )
