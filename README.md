@@ -151,12 +151,17 @@ quotation-scale excerpts with offsets.
   where data had been shared counted as reuse). Read `data_reuse` counts with
   that bias in mind; the judge catches most but not all of these.
 - The corpus passes all ran on the strong model, with a small-model union on
-  top. The citing full-text passes ran on the small model, by decision. A
-  500-document strong-model sample measured that the small model recovers 42
-  to 62 percent of strong-model records on several classes, so citing-side
-  counts are floors, not totals. Escalating those passes to the strong model
-  (about 326 USD) would raise citing-side recall; worth it only if per-class
-  citing counts, rather than judged reuse claims, become load-bearing results.
+  top. The citing full-text passes ran on the small model, by decision, and a
+  500-document strong-model sample measured the consequences precisely:
+  record-level, the small model recovers 42 to 62 percent of strong-model
+  spans, so citing-side record counts are floors; document-level, it detects
+  96 to 100 percent of the documents the strong model flags per class while
+  flagging 1.3 to 2.3 times more documents, so citing-side document counts may
+  be inflated rather than deflated. Document-level figures are therefore
+  usable; within-document detail is not. Escalation to the strong model (about
+  326 USD) is only warranted if per-record citing detail becomes load-bearing;
+  a judged sample of small-model citing records is the cheaper check on the
+  over-flagging direction.
 - Absence is recorded, never implied: a document with no availability
   statement contributes an explicit `no_statement` record.
 

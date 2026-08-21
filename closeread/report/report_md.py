@@ -102,11 +102,14 @@ def render_report_md(
     if (out_dir / "model_gap_500_sample.json").exists():
         a(
             "- The citing full-text passes were deliberately left on the small model for this "
-            "pass. The 500-document sample (methods) measured that the small model recovers "
-            "42 to 62 percent of strong-model records on several classes, so citing-side "
-            "record counts are floors. Escalating those passes to the strong model "
-            "(about 326 USD) would raise citing-side recall and is worth doing if per-class "
-            "citing counts, rather than judged reuse claims, become load-bearing results."
+            "pass. The 500-document sample (methods) measured both directions of the gap: "
+            "record-level, the small model recovers 42 to 62 percent of strong-model spans "
+            "(citing record counts are floors); document-level, it detects 96 to 100 percent "
+            "of documents the strong model flags while flagging 1.3 to 2.3 times more "
+            "(citing document counts may be inflated). Document-level figures are usable; "
+            "within-document detail is not. Escalation (about 326 USD) is warranted only if "
+            "per-record citing detail becomes load-bearing; a judged sample of small-model "
+            "citing records is the cheaper check on over-flagging."
         )
     a("")
     a("## 6. Methods")
