@@ -146,6 +146,10 @@ quotation-scale excerpts with offsets.
   93 percent and recall 96 percent; extraction precision 97 percent for
   data_acquisition and 86 percent for engagement. Figure F8 states coverage
   and measured precision per class and should be read before any other figure.
+- The most frequent extraction error, from the labelling notes: a citing
+  paper's own data-availability statement misread as data reuse (statements of
+  where data had been shared counted as reuse). Read `data_reuse` counts with
+  that bias in mind; the judge catches most but not all of these.
 - The citing full-text passes ran on the small model. A 500-document
   strong-model sample measured that the small model recovers 42 to 62 percent
   of strong-model records on several classes, so citing-side counts are

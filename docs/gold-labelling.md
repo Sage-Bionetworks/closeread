@@ -41,6 +41,10 @@ Mark `incorrect` when either fails. Common failure modes to watch for:
   near a mention of the consortium. If the reused data is not the
   consortium's, the record is incorrect. This was the prototype's largest
   error class.
+- **Distribution mistaken for reuse.** A citing paper's own data-availability
+  statement ("datasets used in this study are available under GSE…", "data are
+  deposited in dbGaP phs…") is where data was shared, not reuse of it. This
+  was the dominant error in the first labelling round (10 of 15 incorrect).
 - **Boilerplate mistaken for reuse.** "Processed as previously described" or
   citation of a method paper is not data reuse.
 - **Kind inflation.** Text supports `background_citation` but the record also

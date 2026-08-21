@@ -151,6 +151,33 @@ def render_report_md(
                     f"- Judge calibration on {run_id}: precision {pr['precision']:.1%}, "
                     f"recall {pr['recall']:.1%} against {pr['n']} human labels."
                 )
+        # Per-class extraction precision from the human labels.
+        labels = {
+            g["record_id"]: g["human_label"]
+            for g in read_jsonl(out_dir / "gold_labels.jsonl")
+            if g["human_label"] in ("correct", "incorrect")
+        }
+        per_class: Counter = Counter()
+        per_class_bad: Counter = Counter()
+        for r in records:
+            truth = labels.get(r["record_id"])
+            if truth is None:
+                continue
+            per_class[r["extraction_class"]] += 1
+            if truth == "incorrect":
+                per_class_bad[r["extraction_class"]] += 1
+        for cls, n_cls in sorted(per_class.items()):
+            a(
+                f"- Extraction precision, human-labelled, {cls}: "
+                f"{(n_cls - per_class_bad[cls]) / n_cls:.1%} (n={n_cls})."
+            )
+        a(
+            "- The dominant extraction error, per the labelling notes, is a citing paper's "
+            "own data-availability statement misread as data reuse (distribution mistaken "
+            "for reuse). Secondary modes: malformed or concatenated accession strings, and "
+            "hosts outside the repository vocabulary. See the reviewed labelling CSV "
+            "alongside gold_labels.jsonl."
+        )
     a("- Rejected and unaligned records are retained on disk with status fields; nothing is deleted.")
     a("")
 
