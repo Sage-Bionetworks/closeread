@@ -124,6 +124,20 @@ def render_report_md(
     a("")
     a(f"- Total extraction cost across these runs, at the batch rates in the design: about {total_cost:.2f} USD.")
     a("")
+    gap_path = out_dir / "model_gap_500_sample.json"
+    if gap_path.exists():
+        gap = json.loads(gap_path.read_text())
+        a("- Small-vs-strong model gap, measured on the 500-document citing sample (§14.2):")
+        a("")
+        a("| pass | class | strong records | small records | small recall vs strong |")
+        a("|---|---|---|---|---|")
+        for pass_name, data in gap.items():
+            for cls, m in data["classes"].items():
+                a(
+                    f"| {pass_name} | {cls} | {m['strong_records']} | {m['small_records']} | "
+                    f"{m['small_recall_vs_strong']:.0%} |"
+                )
+        a("")
     a(f"- Human-labelled gold records: {n_labels} (target 150; see §11.3).")
     a("- Rejected and unaligned records are retained on disk with status fields; nothing is deleted.")
     a("")
