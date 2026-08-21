@@ -150,10 +150,13 @@ quotation-scale excerpts with offsets.
   paper's own data-availability statement misread as data reuse (statements of
   where data had been shared counted as reuse). Read `data_reuse` counts with
   that bias in mind; the judge catches most but not all of these.
-- The citing full-text passes ran on the small model. A 500-document
-  strong-model sample measured that the small model recovers 42 to 62 percent
-  of strong-model records on several classes, so citing-side counts are
-  floors, not totals.
+- The corpus passes all ran on the strong model, with a small-model union on
+  top. The citing full-text passes ran on the small model, by decision. A
+  500-document strong-model sample measured that the small model recovers 42
+  to 62 percent of strong-model records on several classes, so citing-side
+  counts are floors, not totals. Escalating those passes to the strong model
+  (about 326 USD) would raise citing-side recall; worth it only if per-class
+  citing counts, rather than judged reuse claims, become load-bearing results.
 - Absence is recorded, never implied: a document with no availability
   statement contributes an explicit `no_statement` record.
 

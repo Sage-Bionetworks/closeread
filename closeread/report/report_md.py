@@ -99,6 +99,15 @@ def render_report_md(
         a(f"- Judge precision is NOT yet measured against human labels: {n_labels} of the required 150 labels exist (§11.3 unmet).")
     if low_attrs:
         a(f"- Attributes populated below 50 percent: " + "; ".join(sorted(set(low_attrs))[:12]) + ".")
+    if (out_dir / "model_gap_500_sample.json").exists():
+        a(
+            "- The citing full-text passes were deliberately left on the small model for this "
+            "pass. The 500-document sample (methods) measured that the small model recovers "
+            "42 to 62 percent of strong-model records on several classes, so citing-side "
+            "record counts are floors. Escalating those passes to the strong model "
+            "(about 326 USD) would raise citing-side recall and is worth doing if per-class "
+            "citing counts, rather than judged reuse claims, become load-bearing results."
+        )
     a("")
     a("## 6. Methods")
     a("")
