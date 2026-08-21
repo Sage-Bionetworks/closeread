@@ -66,6 +66,48 @@ def pmids_to_pmcids(pmids: Iterable[str], mailto: str, log=print) -> dict[str, s
     return out
 
 
+EFETCH_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
+
+
+def fetch_abstracts(pmids: Iterable[str], mailto: str, log=print) -> dict[str, str]:
+    """PMID -> abstract text via PubMed E-utilities, for works where neither
+    full text nor an OpenAlex abstract exists (§5.1 step 5)."""
+    from lxml import etree
+
+    pmids = [p for p in pmids if p]
+    out: dict[str, str] = {}
+    with httpx.Client(timeout=90, headers={"User-Agent": f"closeread (mailto:{mailto})"}) as client:
+        for i in range(0, len(pmids), 200):
+            batch = pmids[i : i + 200]
+            delay = 2.0
+            for attempt in range(5):
+                try:
+                    resp = client.get(
+                        EFETCH_URL,
+                        params={"db": "pubmed", "id": ",".join(batch), "retmode": "xml",
+                                "tool": "closeread", "email": mailto},
+                    )
+                    if resp.status_code in (429, 500, 502, 503, 504):
+                        raise httpx.TransportError("retryable status")
+                    resp.raise_for_status()
+                    break
+                except httpx.TransportError:
+                    if attempt == 4:
+                        raise
+                    time.sleep(delay)
+                    delay *= 2
+            root = etree.fromstring(resp.content)
+            for art in root.iter("PubmedArticle"):
+                pmid = art.findtext(".//PMID")
+                abstract = " ".join(
+                    " ".join(a.itertext()).strip() for a in art.findall(".//Abstract/AbstractText")
+                ).strip()
+                if pmid and abstract:
+                    out[pmid] = abstract
+            time.sleep(0.4)  # NCBI rate limit
+    return out
+
+
 def unsigned_client():
     return boto3.client("s3", region_name="us-east-1", config=Config(signature_version=UNSIGNED))
 

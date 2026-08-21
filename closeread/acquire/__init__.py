@@ -110,6 +110,8 @@ def acquire_corpus(config: CommunityConfig, settings: Settings, log=print) -> li
         log(f"collapsed {len(documents) - len(by_id)} duplicate doc_id rows")
     documents = list(by_id.values())
 
+    _backfill_abstracts(documents, settings, log)
+
     docs_path = out_dir / "documents.jsonl"
     write_jsonl(docs_path, documents)
     n_full = sum(1 for d in documents if d.oa_status == "fulltext")
@@ -119,6 +121,22 @@ def acquire_corpus(config: CommunityConfig, settings: Settings, log=print) -> li
         f"bytes fetched: {bytes_fetched:,}  -> {docs_path}"
     )
     return documents
+
+
+def _backfill_abstracts(documents: list[Document], settings: Settings, log=print) -> None:
+    """PubMed abstract fallback for works with neither full text nor an
+    OpenAlex abstract (§5.1 step 5: fetch the abstract for every work)."""
+    targets = [d for d in documents if d.oa_status != "fulltext" and not d.abstract and d.pmid]
+    if not targets:
+        return
+    got = pmc.fetch_abstracts([d.pmid for d in targets], settings.openalex_mailto, log=log)
+    n = 0
+    for d in targets:
+        if d.pmid in got:
+            d.abstract = got[d.pmid]
+            d.oa_status = "abstract_only"
+            n += 1
+    log(f"abstract backfill via PubMed: {n} of {len(targets)}")
 
 
 def parsed_dir(settings: Settings, community: str) -> Path:
@@ -301,6 +319,8 @@ def acquire_citing(config: CommunityConfig, settings: Settings, log=print) -> No
                 **overlap,
             )
         )
+
+    _backfill_abstracts(documents, settings, log)
 
     all_rows = corpus_rows + [json_ready for json_ready in (d.model_dump() for d in documents)]
     write_jsonl(out_dir / "documents.jsonl", all_rows)
