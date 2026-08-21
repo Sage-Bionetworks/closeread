@@ -139,6 +139,18 @@ def render_report_md(
                 )
         a("")
     a(f"- Human-labelled gold records: {n_labels} (target 150; see §11.3).")
+    if n_labels >= 1:
+        from closeread.judge.gold_sample import judge_precision_recall
+
+        for run_id in run_ids:
+            if "_provenance_" not in run_id:
+                continue
+            pr = judge_precision_recall(run_id, settings, config.community, log=lambda *a_: None)
+            if pr and pr["n"] >= 30:
+                a(
+                    f"- Judge calibration on {run_id}: precision {pr['precision']:.1%}, "
+                    f"recall {pr['recall']:.1%} against {pr['n']} human labels."
+                )
     a("- Rejected and unaligned records are retained on disk with status fields; nothing is deleted.")
     a("")
 
