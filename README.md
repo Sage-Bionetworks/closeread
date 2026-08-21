@@ -36,5 +36,25 @@ uv run closeread report  --runs <run_id>
 Every submitting command supports `--dry-run` (request count and cost
 estimate) and is gated by a two-request canary through the real batch path.
 
+## Outputs
+
+Pipeline outputs are **not committed** to this repository (`out/` is
+gitignored). The HTAN run's outputs are published on Synapse in
+[syn76993185](https://www.synapse.org/#!Synapse:syn76993185) (public; download
+for registered Synapse users):
+
+| Synapse folder | Contents |
+|---|---|
+| [syn76993186](https://www.synapse.org/#!Synapse:syn76993186) `metadata` | documents.jsonl, citation_edges.jsonl, candidates.jsonl, vocab_map.jsonl, model_gap_500_sample.json |
+| [syn76993187](https://www.synapse.org/#!Synapse:syn76993187) `silver` | judged, canonicalised records (one JSONL per run) |
+| [syn76993188](https://www.synapse.org/#!Synapse:syn76993188) `gold` | one flat CSV per extraction class |
+| [syn76993189](https://www.synapse.org/#!Synapse:syn76993189) `report` | REPORT.md and figure_manifest.json |
+| [syn76993190](https://www.synapse.org/#!Synapse:syn76993190) `figures` | eight figures (SVG + PNG) with backing CSVs |
+| [syn76993191](https://www.synapse.org/#!Synapse:syn76993191) `runs` | per-run summaries (models, tokens, alignment, attribute population) |
+
+Raw batch responses and fetched full-text XML stay local (`out/htan/raw/`,
+immutable): the XML is third-party publisher content and is re-fetchable from
+its sources.
+
 See `docs/` for credentials, pass definitions, and adding a community. The
 full design specification lives outside this repo (see `CLAUDE.md`).

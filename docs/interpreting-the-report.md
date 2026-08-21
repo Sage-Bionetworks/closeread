@@ -1,5 +1,8 @@
 # Interpreting the report
 
+The HTAN run's report, figures, gold tables, and silver records are published
+on Synapse: [syn76993185](https://www.synapse.org/#!Synapse:syn76993185).
+
 Every figure in `out/report/` is computed at render time from stored records.
 Each figure ships with a CSV of the plotted data (same base name) and an entry
 in `figure_manifest.json` recording its run identifiers, record count,
