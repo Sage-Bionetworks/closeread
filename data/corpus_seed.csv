@@ -1,0 +1,170 @@
+pmid,doi,pmcid,title,htan_centre,grant_numbers
+30346945,10.1371/journal.pbio.2006687,PMC6211764,Quantitative assessment of cell population diversity in single-cell landscapes,Vanderbilt (CRC),CA233291
+30889376,10.1016/j.ccell.2019.02.012,PMC6499473,Therapeutic Clues from an Integrated Omic Assessment of East Asian Triple Negative Breast Cancers,OHSU (Metastatic),CA233280
+31060596,10.1186/s13059-019-1681-8,PMC6501316,SCRABBLE: single-cell RNA-seq imputation constrained by bulk RNA-seq data,CHOP (Pediatric),CA233285
+31070747,10.1093/molbev/msz099,PMC6657726,"Return to the Sea, Get Huge, Beat Cancer: An Analysis of Cetacean Genomes Including an Assembly for the Humpback Whale (Megaptera novaeangliae)",Duke (Breast PCA),CA233254
+31142513,10.1158/0008-5472.CAN-19-0153,PMC6774823,The Immune Contexture Associates with the Genomic Landscape in Lung Adenomatous Premalignancy,Boston U (Lung PCA),CA233238
+31534232,10.1038/s41596-019-0206-y,PMC6959005,Qualifying antibodies for image-based immune profiling and multiplexed tissue imaging,HMS (PATCH); OHSU (Metastatic),CA233262; CA233280
+31848351,10.1038/s41597-019-0332-y,PMC6917801,Highly multiplexed immunofluorescence images and single-cell data of immune markers in tonsil and lung cancer,CHOP (Pediatric); HMS (PATCH); OHSU (Metastatic),CA233262; CA233280; CA233285
+31161239,10.1007/s00401-019-02029-5,PMC7038792,An update on the CNS manifestations of neurofibromatosis type 2,HMS (PATCH),CA233262
+32015472,10.1038/s41577-019-0263-z,PMC7547402,Distribution and storage of inflammatory memory in barrier tissues,HMS (DFCI),CA233195
+32077397,10.1017/S0007114520000550,PMC7438237,Yogurt consumption and colorectal polyps,Vanderbilt (CRC),CA233291
+32127393,10.1158/1078-0432.CCR-19-3888,PMC7367708,Dissecting the Tumor-Immune Landscape in Chimeric Antigen Receptor T-cell Therapy: Key Challenges and Opportunities for a Systems Immunology Approach,CHOP (Pediatric),CA233285
+32152447,10.1038/s42003-020-0828-1,PMC7062831,RESTORE: Robust intEnSiTy nORmalization mEthod for multiplexed imaging,OHSU (Metastatic),CA233280
+32243801,10.1016/j.cell.2020.03.022,PMC7141410,How Machine Learning Will Transform Biomedicine,OHSU (Metastatic),CA233280
+32302568,10.1016/j.cell.2020.03.053,PMC7376497,The Human Tumor Atlas Network: Charting Tumor Transitions across Space and Time at Single-Cell Resolution,Boston U (Lung PCA); CHOP (Pediatric); DFCI DCC; Duke (Breast PCA); HMS (DFCI); HMS (PATCH); MSK (Metastasis); OHSU (Metastatic); Stanford (FAP); Vanderbilt (CRC); WashU,CA233195; CA233238; CA233243; CA233254; CA233262; CA233280; CA233284; CA233285; CA233291; CA233303; CA233311
+32312293,10.1186/s13059-020-02008-0,PMC7169039,scATAC-pro: a comprehensive workbench for single-cell chromatin accessibility sequencing data,CHOP (Pediatric),CA233285
+32375029,10.1016/j.celrep.2020.107576,PMC7305633,A Quantitative Framework for Evaluating Single-Cell Data Structure Preservation by Dimensionality Reduction Techniques,Vanderbilt (CRC),CA233291
+32405060,10.1038/s41591-020-0844-1,PMC7220853,A single-cell and single-nucleus RNA-Seq toolbox for fresh and frozen human tumors,HMS (DFCI),CA233195
+32417404,10.1053/j.gastro.2020.04.073,PMC7484006,"Use of Single-Cell -Omic Technologies to Study the Gastrointestinal Tract and Diseases, From Single Cell Identities to Patient Features",Vanderbilt (CRC),CA233291
+32421773,10.1093/molbev/msaa125,PMC7530603,The Evolution of Human Cancer Gene Duplications across Mammals,Duke (Breast PCA),CA233254
+32423648,10.1016/bs.mcb.2020.01.005,,A workflow for visualizing human cancer biopsies using large-format electron microscopy,OHSU (Metastatic),CA233280
+32616006,10.1186/s12864-020-06843-0,PMC7331155,Dual indexed library design enables compatibility of in-Drop single-cell RNA-sequencing with exAMP chemistry sequencing platforms,Vanderbilt (CRC),CA233291
+32624198,10.1016/j.tips.2020.06.008,PMC8106543,Select Stabilization of a Tumor-Suppressive PP2A Heterotrimer,OHSU (Metastatic),CA233280
+32832663,10.1126/sciadv.aba3064,PMC7439310,Diverse noncoding mutations contribute to deregulation of cis-regulatory landscape in pediatric cancers,CHOP (Pediatric),CA233285
+32856614,10.1158/1055-9965.EPI-20-0716,PMC8294063,Lung Cancer and Immunity Markers,Boston U (Lung PCA),CA233238
+32973205,10.1038/s41522-020-00143-x,PMC7518420,Clinically adaptable polymer enables simultaneous spatial analysis of colonic tissues and biofilms,Vanderbilt (CRC),CA233291
+33004476,10.1158/2159-8290.CD-20-1087,PMC8396076,Immunosurveillance and Regression in the Context of Squamous Pulmonary Premalignancy,Boston U (Lung PCA),CA233238
+33053333,10.1016/j.immuni.2020.09.015,PMC7562821,Second-Strand Synthesis-Based Massively Parallel scRNA-Seq Reveals Cellular States and Molecular Features of Human Inflammatory Skin Pathologies,HMS (DFCI),CA233195
+33768192,10.21105/joss.02579,PMC7989801,"Minerva: a light-weight, narrative image browser for multiplexed tissue images",HMS (PATCH); OHSU (Metastatic),CA233262; CA233280
+34589908,10.1016/j.jtocrr.2020.100001,PMC8474414,The Role of Interleukin 1β in the Pathogenesis of Lung Cancer,Boston U (Lung PCA),CA233238
+33219054,10.1101/gr.267047.120,PMC7849382,Predictive modeling of single-cell DNA methylome data enhances integration with transcriptome data,CHOP (Pediatric),CA233285
+33633365,10.1038/s41588-021-00790-6,PMC8012210,ArchR is a scalable software package for integrative single-cell chromatin accessibility analysis,Stanford (FAP),CA233311
+33820778,10.1158/2159-8290.CD-20-1677,PMC8419030,Integrative Bulk and Single-Cell Profiling of Premanufacture T-cell Populations Reveals Factors Mediating Long-Term Persistence of CAR T-cell Therapy,CHOP (Pediatric),CA233285
+33853780,10.1126/sciadv.abf1356,PMC8046375,CytoTalk: De novo construction of signal transduction networks using single-cell transcriptomic data,CHOP (Pediatric),CA233285
+33957863,10.1186/s12859-021-04147-y,PMC8101181,Systematic interrogation of mutation groupings reveals divergent downstream expression programs within key cancer genes,OHSU (Metastatic),CA233280
+33963182,10.1038/s41467-021-22804-x,PMC8105337,Co-evolution of tumor and immune cells during progression of multiple myeloma,WashU,CA233303
+33982010,10.1016/j.xpro.2021.100450,PMC8082116,Processing single-cell RNA-seq data for dimension reduction-based analyses using open-source tools,Vanderbilt (CRC),CA233291
+34061826,10.1371/journal.pcbi.1009014,PMC8213174,"Galaxy-ML: An accessible, reproducible, and scalable machine learning toolkit for biomedicine",OHSU (Metastatic),CA233280
+34117742,10.1093/bib/bbab221,PMC8574974,A new method to accurately identify single nucleotide variants using small FFPE breast samples,Duke (Breast PCA),CA233254
+34404785,10.1038/s41467-021-25279-y,PMC8371137,Live cell tagging tracking and isolation for spatial transcriptomics using photoactivatable cell dyes,HMS (DFCI),CA233195
+34593797,10.1038/s41467-021-25872-1,PMC8484618,Chromatin accessibility associates with protein-RNA correlation in human cancer,Stanford (FAP),CA233311
+34625255,10.1016/j.aca.2021.339023,PMC8502232,In-depth triacylglycerol profiling using MS(3) Q-Trap mass spectrometry,Stanford (FAP),CA233311
+34642316,10.1038/s41467-021-25860-5,PMC8511044,Genomic and transcriptomic correlates of immunotherapy response within the tumor microenvironment of leptomeningeal metastases,HMS (DFCI),CA233195
+34653367,10.1016/j.cell.2021.09.028,PMC8655686,Deciphering the cancer microenvironment from bulk data with EcoTyper,Vanderbilt (CRC),CA233291
+34788294,10.1371/journal.pbio.3001471,PMC8635375,Upregulation of DNA repair genes and cell extrusion underpin the remarkable radiation resistance of Trichoplax adhaerens,Duke (Breast PCA),CA233254
+34890551,10.1016/j.cell.2021.11.017,PMC8822455,"Microenvironment drives cell state, plasticity, and drug response in pancreatic cancer",HMS (DFCI),CA233195
+34910928,10.1016/j.cell.2021.11.031,PMC8941949,Differential pre-malignant programs and microenvironment chart distinct paths to malignancy in human colorectal polyps,Vanderbilt (CRC),CA233291
+34824477,10.1038/s41592-021-01308-y,PMC8916956,"MCMICRO: a scalable, modular image-processing pipeline for multiplexed tissue imaging",HMS (PATCH); OHSU (Metastatic); Vanderbilt (CRC),CA233262; CA233280; CA233291
+34864916,10.1182/blood.2021013442,PMC8990373,"Single-cell multiomics reveals increased plasticity, resistant populations, and stem-cell-like blasts in KMT2A-rearranged leukemia",CHOP (Pediatric),CA233285
+35084791,10.1002/cyto.a.24541,PMC9167255,MIRIAM: A machine and deep learning single-cell segmentation and quantification pipeline for multi-dimensional tissue images,Vanderbilt (CRC),CA233291
+35217711,10.1038/s41698-022-00253-z,PMC8881577,Single-cell spatial architectures associated with clinical outcome in head and neck squamous cell carcinoma,OHSU (Metastatic),CA233280
+35277708,10.1038/s41592-022-01415-4,PMC9009186,MITI minimum information guidelines for highly multiplexed tissue images,Boston U (Lung PCA); CHOP (Pediatric); DFCI DCC; Duke (Breast PCA); HMS (DFCI); HMS (PATCH); MSK (Metastasis); OHSU (Metastatic); Stanford (FAP); Vanderbilt (CRC); WashU,CA233195; CA233238; CA233243; CA233254; CA233262; CA233280; CA233284; CA233285; CA233291; CA233303; CA233311
+35380701,10.1158/1541-7786.MCR-21-0560,PMC9262837,T-cell Dysfunction upon Expression of MYC with Altered Phosphorylation at Threonine 58 and Serine 62,OHSU (Metastatic),CA233280
+35404441,10.1158/2159-8290.CD-21-1357,PMC9167783,The Spatial Landscape of Progression and Immunoediting in Primary Melanoma at Single-Cell Resolution,HMS (PATCH),CA233262
+35545666,10.1038/s42003-022-03368-y,PMC9095647,A framework for multiplex imaging optimization and reproducible analysis,OHSU (Metastatic),CA233280
+35600339,10.3389/fonc.2022.878920,PMC9114773,Cancer-Associated Fibroblasts and Squamous Epithelial Cells Constitute a Unique Microenvironment in a Mouse Model of Inflammation-Induced Colon Cancer,Vanderbilt (CRC),CA233291
+35603231,10.1093/bioadv/vbac028,PMC9115775,Pollock: fishing for cell states,WashU,CA233303
+35681680,10.3390/cancers14112699,PMC9179496,In Silico Investigations of Multi-Drug Adaptive Therapy Protocols,Duke (Breast PCA),CA233254
+35726067,10.1038/s41588-022-01088-x,PMC9279149,Single-cell analyses define a continuum of cell state and composition changes in the malignant transformation of polyps to colorectal cancer,Stanford (FAP),CA233311
+35731887,10.1126/scitranslmed.abn3353,PMC9284935,B cell targeting in CAR T cell therapy: Side effect or driver of CAR T cell function?,CHOP (Pediatric),CA233285
+35880121,10.1016/j.xpro.2022.101570,PMC9307676,Dissociation and inDrops microfluidic encapsulation of human gut tissues for single-cell atlasing studies,Vanderbilt (CRC),CA233291
+35972352,10.1093/bioinformatics/btac544,PMC9525007,Stitching and registering highly multiplexed whole-slide images of tissues and tumors using ASHLAR,HMS (PATCH),CA233262
+35995947,10.1038/s41588-022-01157-1,PMC9470535,Spatially restricted drivers and transitional cell populations cooperate with the microenvironment in untreated and chemo-resistant pancreatic cancer,WashU,CA233303
+36098652,10.1158/2159-8290.CD-21-1658,PMC9633381,The Single-Cell Immunogenomic Landscape of B and Plasma Cells in Early-Stage Lung Adenocarcinoma,Boston U (Lung PCA),CA233238
+36400020,10.1016/j.ccell.2022.10.021,PMC9772081,Molecular classification and biomarkers of clinical outcome in breast ductal carcinoma in situ: Analysis of TBCRC 038 and RAHBT cohorts,Duke (Breast PCA),CA233254
+36400937,10.1038/s42003-022-04076-3,PMC9674686,UnMICST: Deep learning with real augmentation for robust segmentation of highly multiplexed images of human tissues,HMS (PATCH),CA233262
+36255409,10.1158/2326-6066.CIR-22-0095,PMC9808313,Characterization of Leukemic Resistance to CD19-Targeted CAR T-cell Therapy through Deep Genomic Sequencing,CHOP (Pediatric),CA233285
+36517591,10.1038/s41586-022-05515-1,PMC9812771,Recurrent repeat expansions in human cancer genomes,Stanford (FAP),CA233311
+36669472,10.1016/j.cell.2022.12.028,PMC10019067,Multiplexed 3D atlas of state transitions and immune interaction in colorectal cancer,HMS (PATCH); OHSU (Metastatic); Vanderbilt (CRC),CA233262; CA233280; CA233291
+36765116,10.1038/s41467-023-36344-z,PMC9918733,Application of high-throughput single-nucleus DNA sequencing in pancreatic cancer,MSK (Metastasis),CA233284
+36824773,10.1101/2023.02.11.528100,PMC9948971,Life history and cancer in birds: clutch size predicts cancer,Duke (Breast PCA),CA233254
+36922587,10.1038/s41586-023-05795-1,PMC10076218,Spatial epigenome-transcriptome co-profiling of mammalian tissues,Yale (Lymphoma),CA294514
+36973268,10.1038/s41467-023-37211-7,PMC10042888,Epigenetic and transcriptomic characterization reveals progression markers and essential pathways in clear cell renal cell carcinoma,WashU,CA233303
+36973557,10.1038/s41587-023-01716-9,PMC10713451,SEACells infers transcriptional and epigenomic cellular states from single-cell genomics data,MSK (Metastasis),CA233284
+37059105,10.1016/j.ccell.2023.03.015,PMC10193529,Lymphocyte networks are dynamic cellular communities in the immunoregulatory landscape of lung adenocarcinoma,HMS (PATCH),CA233262
+37131616,10.1101/2023.04.18.537375,PMC10153165,The covariance environment defines cellular niches for spatial inference,MSK (Metastasis),CA233284
+37349501,10.1038/s43018-023-00576-1,PMC10368530,High-plex immunofluorescence imaging and traditional histology of the same tissue section for discovering image-based biomarkers,HMS (PATCH),CA233262
+37433282,10.1016/j.ccell.2023.06.002,PMC10416265,Molecular classification and biomarkers of clinical outcome in breast ductal carcinoma in situ: Analysis of TBCRC 038 and RAHBT cohorts,Duke (Breast PCA),CA233254
+37477508,10.1158/0008-5472.CAN-23-0128,PMC10544016,Single-Cell Characterization of Pulmonary Nodules Implicates Suppression of Immunosurveillance across Early Stages of Lung Adenocarcinoma,Boston U (Lung PCA),CA233238
+37496679,10.1016/j.isci.2023.107242,PMC10366499,A contamination focused approach for optimizing the single-cell RNA-seq experiment,Vanderbilt (CRC),CA233291
+37577544,10.1101/2023.07.31.551378,PMC10418110,"The relationship between diet, plasma glucose, and cancer prevalence across vertebrates",Duke (Breast PCA),CA233254
+37781632,10.1101/2023.09.18.558136,PMC10541126,Testing Adaptive Therapy Protocols using Gemcitabine and Capecitabine on a Mouse Model of Endocrine-Resistant Breast Cancer,Duke (Breast PCA),CA233254
+37790506,10.21203/rs.3.rs-3270272/v1,PMC10543389,MIM-CyCIF: Masked Imaging Modeling for Enhancing Cyclic Immunofluorescence (CyCIF) with Panel Reduction and Imputation,OHSU (Metastatic),CA233280
+37841858,10.21203/rs.3.rs-3376588/v1,PMC10571630,Cell-in-cell phenomena across the tree of life,Duke (Breast PCA),CA233254
+37873488,10.1101/2023.10.01.560370,PMC10592867,Growth Dynamics of Ductal Carcinoma in Situ Recapitulate Normal Breast Development,Duke (Breast PCA),CA233254
+37914932,10.1038/s41586-023-06682-5,PMC10632147,Epigenetic regulation during cancer transitions across 11 tumour types,WashU,CA233303
+37961180,10.1101/2023.10.30.563998,PMC10635003,Efficient semi-supervised semantic segmentation of electron microscopy cancer images with sparse annotations,OHSU (Metastatic),CA233280
+37986801,10.1101/2023.11.07.566063,PMC10659270,2D and 3D multiplexed subcellular profiling of nuclear instability in human cancer,HMS (PATCH),CA233262
+38014110,10.1101/2023.11.15.567196,PMC10680730,Cell Spotter (CSPOT): A machine-learning approach to automated cell spotting and quantification of highly multiplexed tissue images,HMS (PATCH); OHSU (Metastatic),CA233262; CA233280
+38065082,10.1016/j.cell.2023.11.006,PMC10756562,Molecular cartography uncovers evolutionary and microenvironmental dynamics in sporadic colorectal tumors,Vanderbilt (CRC),CA233291
+38162122,10.3389/fbinf.2023.1308707,PMC10757843,Efficient semi-supervised semantic segmentation of electron microscopy cancer images with sparse annotations,OHSU (Metastatic),CA233280
+38590513,10.1159/000538131,PMC11001286,Investigation of Novel Urinary Biomarkers in Hepatocellular Carcinoma Risk in a Predominantly African American Population: A Case-Control Study,Vanderbilt (CRC),CA233291
+37679544,10.1038/s41587-023-01935-0,PMC11638971,Integration of spatial and single-cell data across modalities with weakly linked features,CHOP (Pediatric),CA233285
+37735262,10.1038/s41587-023-01940-3,PMC10958532,Supervised discovery of interpretable gene programs from single-cell data,MSK (Metastasis),CA233284
+37870091,10.1093/neuonc/noad205,PMC10912007,Systematic characterization of antibody-drug conjugate targets in central nervous system tumors,HMS (PATCH),CA233262
+37961235,10.1101/2023.11.01.565120,PMC10634977,Quality Control for Single Cell Analysis of High-plex Tissue Profiles using CyLinter,HMS (PATCH); OHSU (Metastatic),CA233262; CA233280
+38106203,10.1101/2023.12.05.570058,PMC10723289,Imputing Single-Cell Protein Abundance in Multiplex Tissue Imaging,OHSU (Metastatic),CA233280
+38167908,10.1038/s41523-023-00605-3,PMC10761880,Qualification of a multiplexed tissue imaging assay and detection of novel patterns of HER2 heterogeneity in breast cancer,HMS (PATCH); OHSU (Metastatic),CA233262; CA233280
+38191930,10.1038/s41592-023-02124-2,PMC10864185,Unsupervised and supervised discovery of tissue cellular neighborhoods from cell phenotypes,CHOP (Pediatric),CA233285
+38254748,10.3390/cancers16020257,PMC10813385,Testing Adaptive Therapy Protocols Using Gemcitabine and Capecitabine in a Preclinical Model of Endocrine-Resistant Breast Cancer,Duke (Breast PCA),CA233254
+38496580,10.1101/2024.03.06.583588,PMC10942465,A longitudinal single-cell and spatial multiomic atlas of pediatric high-grade glioma,CHOP (Pediatric),CA233285
+38553457,10.1038/s41598-024-57528-7,PMC10980697,Cell-in-cell phenomena across the tree of life,Duke (Breast PCA),CA233254
+38714197,10.1016/j.cell.2024.04.013,PMC11162340,Mapping the cellular biogeography of human bone marrow niches using single-cell transcriptomics and proteomic imaging,CHOP (Pediatric),CA233285
+38856716,10.1158/2767-9764.CRC-23-0564,PMC11249519,Noninvasive Lung Cancer Subtype Classification Using Tumor-Derived Signatures and cfDNA Methylome,Boston U (Lung PCA),CA233238
+39091884,10.1101/2024.07.23.604673,PMC11291049,Genetic evolution of keratinocytes to cutaneous squamous cell carcinoma,UCSF (Skin),CA294536
+39149342,10.1101/2024.08.09.607342,PMC11326269,Somatic mutation phasing and haplotype extension using linked-reads in multiple myeloma,WashU,CA233303
+39185534,10.1101/2024.08.15.24311949,PMC11343254,Evolutionary Measures Show that Recurrence of DCIS is Distinct from Progression to Breast Cancer,Duke (Breast PCA),CA233254
+39236169,10.1126/science.adk9217,PMC12289346,Single-cell chromatin accessibility reveals malignant regulatory programs in primary human cancers,Stanford (FAP),CA233311
+39256635,10.1038/s41568-024-00734-2,PMC11627115,The evolutionary theory of cancer: challenges and potential solutions,Duke (Breast PCA),CA233254
+39300183,10.1038/s41598-024-72255-9,PMC11413001,Treatment resistance to melanoma therapeutics on a single cell level,WashU,CA233303
+39345491,10.1101/2024.09.15.613139,PMC11429831,CelloType: A Unified Model for Segmentation and Classification of Tissue Images,CHOP (Pediatric),CA233285
+39353436,10.1016/j.cell.2024.09.001,PMC11568911,Spatially exploring RNA biology in archival formalin-fixed paraffin-embedded tissues,Yale (Lymphoma),CA294514
+39354069,10.1038/s41568-024-00744-0,,Defining precancer: a grand challenge for the cancer community,Boston U (Lung PCA),CA233238
+39356625,10.1158/0008-5472.CAN-23-3374,PMC11565176,Resistance Management for Cancer: Lessons from Farmers,Duke (Breast PCA),CA233254
+39386723,10.1101/2024.09.25.615007,PMC11463462,Multimodal Spatial Profiling Reveals Immune Suppression and Microenvironment Remodeling in Fallopian Tube Precursors to High-Grade Serous Ovarian Carcinoma,HMS (PATCH),CA233262
+39478117,10.1038/s43018-024-00773-6,PMC11584403,Differential chromatin accessibility and transcriptional dynamics define breast cancer subtypes and their lineages,WashU,CA233303
+39478119,10.1038/s43018-024-00823-z,PMC11584406,Global loss of promoter-enhancer connectivity and rebalancing of gene expression during early colorectal cancer carcinogenesis,Stanford (FAP),CA233311
+39478120,10.1038/s43018-024-00831-z,PMC11584401,Multiomic analysis of familial adenomatous polyposis reveals molecular pathways associated with early tumorigenesis,Stanford (FAP),CA233311
+39478175,10.1038/s41592-024-02328-0,PMC11621021,Quality control for single-cell analysis of high-plex tissue profiles using CyLinter,HMS (PATCH); OHSU (Metastatic),CA233262; CA233280
+39478207,10.1038/s41586-024-07954-4,PMC11525190,Temporal recording of mammalian development and precancer,Vanderbilt (CRC),CA233291
+39478210,10.1038/s41586-024-08087-4,PMC11525187,Tumour evolution and microenvironment interactions in 2D and 3D space,WashU,CA233303
+39510845,10.1021/jasms.4c00365,PMC11622233,A Streamlined Workflow for Microscopy-Driven MALDI Imaging Mass Spectrometry Data Collection,Vanderbilt (CRC 3D),CA294527
+39605490,10.1101/2024.11.18.624106,PMC11601513,Spatially Resolved in vivo CRISPR Screen Sequencing via Perturb-DBiT,Yale (Lymphoma),CA294514
+39605581,10.1101/2024.11.07.622523,PMC11601288,Integration of Imaging-based and Sequencing-based Spatial Omics Mapping on the Same Tissue Section via DBiTplus,Yale (Lymphoma),CA294514
+39641198,10.1242/jcs.260201,PMC11658686,Extracellular vesicles and nanoparticles at a glance,Vanderbilt (CRC),CA233291
+39643677,10.1038/s41592-024-02533-x,,Integrative spatial protein profiling with multi-omics,Yale (Lymphoma),CA294514
+39711562,10.21203/rs.3.rs-5398491/v1,PMC11661374,Integration of Imaging-based and Sequencing-based Spatial Omics Mapping on the Same Tissue Section via DBiTplus,Yale (Lymphoma),CA294514
+38014052,10.1101/2023.11.10.566670,PMC10680601,Highly Multiplexed 3D Profiling of Cell States and Immune Niches in Human Tumours,HMS (PATCH); OHSU (Metastatic),CA233262; CA233280
+38565973,10.1038/s41587-024-02193-4,PMC11445396,The covariance environment defines cellular niches for spatial inference,MSK (Metastasis),CA233284
+39378050,10.1158/2159-8290.CD-23-1541,PMC11803399,The Evolutionary Forest of Pancreatic Cancer,MSK (Metastasis),CA233284
+39578628,10.1038/s41592-024-02513-1,PMC11810770,CelloType: a unified model for segmentation and classification of tissue images,CHOP (Pediatric),CA233285
+39605357,10.1101/2024.11.20.622725,PMC11601668,Single-cell spatial mapping reveals alteration of tissue microenvironment during early colorectal cancer,Stanford (FAP),CA233311
+39704522,10.1158/2159-8290.CD-24-1366,PMC12130810,Multimodal Spatial Profiling Reveals Immune Suppression and Microenvironment Remodeling in Fallopian Tube Precursors to High-Grade Serous Ovarian Carcinoma,HMS (PATCH),CA233262
+39789181,10.1038/s43018-024-00881-3,PMC11779630,Ongoing replication stress tolerance and clonal T cell responses distinguish liver and lung recurrence and outcomes in pancreatic cancer,OHSU (Pancreatic),CA294548
+39815104,10.1038/s41592-024-02574-2,PMC12139046,Resolving tissue complexity by multimodal spatial omics modeling with MISO,MD Anderson (Gastric),CA294518
+39975212,10.1101/2025.02.07.637114,PMC11839034,Somatic mutations distinguish melanocyte subpopulations in human skin,UCSF (Skin),CA294536
+40001939,10.3390/biology14020171,PMC11851485,Tethya wilhelma (Porifera) Is Highly Resistant to Radiation Exposure and Possibly Cancer,Duke (Breast PCA),CA233254
+40036344,10.1093/bjd/ljaf061,PMC12268035,"Congenital melanocytic naevi initiated by BRAF fusion oncogene with firmness, pruritus and desmoplastic stroma",UCSF (Skin),CA294536
+40074744,10.1038/s41467-025-57344-1,PMC11904020,"The relationship between diet, plasma glucose, and cancer prevalence across vertebrates",Duke (Breast PCA),CA233254
+40089994,10.1182/blood.2024027270,PMC12163743,Single-cell panleukemia signatures of HSPC-like blasts predict drug response and clinical outcome,CHOP (Pediatric),CA233285
+40119005,10.1038/s41596-025-01145-9,,Spatially resolved genome-wide joint profiling of epigenome and transcriptome with spatial-ATAC-RNA-seq and spatial-CUT&Tag-RNA-seq,Yale (Lymphoma),CA294514
+40119428,10.1186/s13058-025-01966-2,PMC11929273,Evolutionary measures show that recurrence of DCIS is distinct from progression to breast cancer,Duke (Breast PCA),CA233254
+40154487,10.1016/j.ccell.2025.03.004,PMC12074878,Conserved spatial subtypes and cellular neighborhoods of cancer-associated fibroblasts revealed by single-cell spatial multi-omics,MD Anderson (Gastric),CA294518
+40229600,10.1038/s41588-025-02158-6,PMC12081299,Longitudinal single-cell multiomic atlas of high-risk neuroblastoma reveals chemotherapy-induced tumor microenvironment rewiring,CHOP (Pediatric),CA233285
+40239625,10.1016/j.xcrm.2025.102080,PMC12047515,Balancing ethical data sharing and open science for reproducible research in biomedical data science,OHSU (Pancreatic),CA294548
+40389599,10.1038/s41746-025-01580-8,PMC12089473,Deep Gaussian process with uncertainty estimation for microsatellite instability and immunotherapy response prediction from histology,MD Anderson (Gastric),CA294518
+40404617,10.1038/s41467-025-59788-x,PMC12098973,Imputing single-cell protein abundance in multiplex tissue imaging,OHSU (Metastatic),CA233280
+40667089,10.1101/2025.06.23.661064,PMC12262432,Morphology-Aware Profiling of Highly Multiplexed Tissue Images using Variational Autoencoders,HMS (PATCH),CA233262
+40667360,10.1101/2025.06.21.660851,PMC12262277,Spatial determinants of tumor cell dedifferentiation and plasticity in primary cutaneous melanoma,HMS (PATCH),CA233262
+40846495,10.1136/gutjnl-2024-334233,PMC12503372,CAF-macrophage crosstalk fuels immunotherapy resistance,MD Anderson (Gastric),CA294518
+40906615,10.1021/jasms.5c00202,PMC12492385,High-Specificity and Sensitivity Imaging of Neutral Lipids Using Salt-Enhanced MALDI TIMS,Vanderbilt (CRC 3D),CA294527
+40954300,10.1038/s41592-025-02770-8,PMC12443328,Scaling up spatial transcriptomics for large-sized tissues: uncovering cellular-level tissue architecture beyond conventional platforms with iSCALE,MD Anderson (Gastric),CA294518
+40971319,10.1158/2767-9764.CRC-24-0167,PMC12531768,The Noncoding Mutational Landscape of Pancreatic Cancer Reveals Recurrent Somatic Mutations in Enhancer Regions,MSK (Metastasis),CA233284
+41000647,10.1101/2025.09.21.677634,PMC12458107,Designing smart spatial omics experiments with S2Omics,MD Anderson (Gastric),CA294518
+41066536,10.1158/0008-5472.CAN-24-4415,PMC12950944,Spatially Discontinuous Mutation Topographies in Ductal Carcinoma In Situ Reveal Noncompetitive Growth Dynamics,Duke (Breast PCA),CA233254
+41292759,10.1101/2025.09.08.674484,PMC12642608,Polyclonal origins of human premalignant colorectal lesions,Stanford (FAP),CA233311
+41298871,10.1038/s41556-025-01811-w,PMC12662399,Smart spatial omics (S2-omics) optimizes region of interest selection to capture molecular heterogeneity in diverse tissues,MD Anderson (Gastric),CA294518
+41309580,10.1038/s41467-025-65687-y,PMC12660313,Genetic evolution of keratinocytes to cutaneous squamous cell carcinoma,UCSF (Skin),CA294536
+41385634,10.1126/sciadv.ady4878,PMC12700204,Molecular effects of indoor tanning,UCSF (Skin),CA294536
+41415434,10.64898/2025.12.11.693669,PMC12710965,Query-driven generative AI synthesizes multi-modal spatial omics from histology,CHOP (Pediatric),CA233285
+41044012,10.1016/j.trecan.2025.09.002,PMC12619058,Spatially resolving cancer: from cell states to therapy,MD Anderson (Gastric),CA294518
+41379552,10.1158/0008-5472.CAN-25-1117,PMC13044532,Transcriptomic Plasticity Is a Hallmark of Metastatic Pancreatic Cancer,MSK (Metastasis),CA233284
+41436318,10.1016/j.trecan.2025.12.001,PMC12742566,HSPC-like blasts in acute lymphoblastic leukemia: biology and therapeutic opportunities,CHOP (Pediatric),CA233285
+41478277,10.1016/j.ccell.2025.12.009,PMC12867001,"Spatial omics at the forefront: emerging technologies, analytical innovations, and clinical applications",MD Anderson (Gastric),CA294518
+41540123,10.1038/s41592-025-02948-0,,Integration of imaging-based and sequencing-based spatial omics mapping on the same tissue section via DBiTplus,Yale (Lymphoma),CA294514
+41545713,10.1038/s43018-025-01107-w,PMC13080512,Cellular neighborhoods in cancer,CHOP (Pediatric),CA233285
+41676712,10.64898/2026.01.30.702675,PMC12889531,HistoSweep enables cellular-resolution tissue quality control for gigapixel images in digital pathology and spatial omics,MD Anderson (Gastric),CA294518
+42045571,10.1038/s41556-026-01943-7,,Somatic mutations distinguish melanocyte subpopulations in human skin,UCSF (Skin),CA294536
+42067542,10.1038/s41467-026-71576-9,,Spatially decoding genotype-associated epigenetic landscapes in human lymphoma FFPE tissues via epi-Patho-DBiT,Yale (Lymphoma),CA294514
+42173891,10.1038/s41467-026-73561-8,,N-Orbit: towards a universal model and metric for comparing tissue microenvironments,CHOP (Pediatric),CA233285

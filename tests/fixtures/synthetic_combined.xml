@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<article xmlns:xlink="http://www.w3.org/1999/xlink" article-type="research-article">
+  <front>
+    <article-meta>
+      <title-group>
+        <article-title>A synthetic article for parser tests</article-title>
+      </title-group>
+      <abstract>
+        <p>This abstract summarises a study of tumour microenvironments using multiplexed imaging.</p>
+      </abstract>
+    </article-meta>
+  </front>
+  <body>
+    <sec sec-type="intro">
+      <title>Introduction</title>
+      <p>Tumour atlases require harmonised assays across centres <xref ref-type="bibr" rid="r1">[1]</xref>.</p>
+    </sec>
+    <sec>
+      <title>Results</title>
+      <p>We identified twelve cell states across three tissue compartments.</p>
+      <fig id="f1"><caption><p>THIS FIGURE CAPTION MUST NOT APPEAR</p></caption></fig>
+      <table-wrap id="t1"><caption><p>THIS TABLE MUST NOT APPEAR</p></caption></table-wrap>
+    </sec>
+    <sec sec-type="materials|methods">
+      <title>STAR Methods</title>
+      <p>Tissues were imaged with CODEX on an Akoya PhenoCycler-Fusion instrument.</p>
+      <sec>
+        <title>Cell segmentation</title>
+        <p>Cells were segmented with Mesmer version 0.4.</p>
+      </sec>
+      <sec>
+        <title>Data and code availability</title>
+        <p>Imaging data are deposited in Synapse under accession syn26644864.
+           Analysis code is available at https://github.com/example/atlas-pipeline.</p>
+      </sec>
+      <disp-formula id="e1"><tex-math>THIS FORMULA MUST NOT APPEAR</tex-math></disp-formula>
+    </sec>
+    <sec>
+      <title>Discussion</title>
+      <p>Shared vocabularies make cross-centre comparison possible.</p>
+    </sec>
+  </body>
+  <back>
+    <ref-list>
+      <ref id="r1"><mixed-citation>THIS REFERENCE MUST NOT APPEAR</mixed-citation></ref>
+    </ref-list>
+  </back>
+</article>
