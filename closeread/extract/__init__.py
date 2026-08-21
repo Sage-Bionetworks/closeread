@@ -137,6 +137,7 @@ def run_extract(
     skip_canary: bool = False,
     doc_type: str = "corpus",
     sample: int | None = None,
+    only_missing: bool = False,
     log=print,
 ) -> dict | None:
     compiled = load_pass(pass_name)
@@ -159,6 +160,26 @@ def run_extract(
         )
     else:
         docs = load_parsed_docs(config, settings, doc_type)
+    if only_missing:
+        # Incremental top-up: skip documents any prior run of this pass and
+        # doc_type already covered (sample runs excluded — they are model
+        # evidence, not coverage).
+        import json as _json
+
+        covered: set[str] = set()
+        for h in batch_mod.runs_dir(settings, config.community).glob(
+            f"{config.community}_{pass_name}_*.handoff.json"
+        ):
+            handoff = _json.loads(h.read_text())
+            if handoff.get("status", "").startswith("cancelled"):
+                continue
+            covered |= {i["doc_id"] for i in handoff["key_index"].values()}
+        before = len(docs)
+        docs = {k: v for k, v in docs.items() if k not in covered}
+        if windows_by_doc is not None:
+            windows_by_doc = {k: v for k, v in windows_by_doc.items() if k in docs}
+        log(f"only-missing: {len(docs)} of {before} documents not yet covered by prior {pass_name} runs")
+
     if not docs:
         log("no parsed documents found; run acquire and parse first")
         sys.exit(1)
