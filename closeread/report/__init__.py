@@ -38,6 +38,17 @@ def run_report(config: CommunityConfig, settings: Settings, run_ids: list[str], 
             manifest[entry["figure"]] = entry
             log(f"rendered {entry['figure']}: {entry['n_records']} records")
 
+    if (gold_dir / "engagement.csv").exists():
+        from closeread.report.reuse_figures import render_f4, render_f5, render_f5b, render_f6
+
+        for renderer in (render_f4, render_f5, render_f5b):
+            entry = renderer(gold_dir, figures_dir, run_ids)
+            manifest[entry["figure"]] = entry
+            log(f"rendered {entry['figure']}: {entry['n_records']} records")
+        entry = render_f6(settings, config.community, gold_dir, figures_dir, run_ids)
+        manifest[entry["figure"]] = entry
+        log(f"rendered {entry['figure']}")
+
     entry = render_f8(settings, config.community, run_ids, figures_dir)
     manifest[entry["figure"]] = entry
     log(f"rendered {entry['figure']}: {entry['n_records']} records")
