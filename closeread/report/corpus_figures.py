@@ -64,7 +64,8 @@ def render_f1(gold_dir: Path, figures_dir: Path, run_ids: list[str]) -> dict:
     rows = _read_gold(gold_dir / "object_format.csv")
     usable = [
         r for r in rows
-        if _pick(r, "canonical_format", "format") not in ("", "not_stated")
+        if r.get("doc_type") == "corpus"
+        and _pick(r, "canonical_format", "format") not in ("", "not_stated")
     ]
     formats: dict[tuple[str, str], set[str]] = defaultdict(set)
     for r in usable:
