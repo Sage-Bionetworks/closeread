@@ -1,0 +1,3 @@
+vocabulary: release_or_acquire
+version: 1.0.0
+values: [released, acquired]

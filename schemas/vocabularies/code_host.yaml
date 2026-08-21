@@ -1,0 +1,3 @@
+vocabulary: code_host
+version: 1.0.0
+values: [GitHub, GitLab, Bitbucket, Zenodo, website, supplementary, on_request, not_stated]

@@ -1,0 +1,16 @@
+vocabulary: repository
+version: 1.0.0
+values:
+  - Synapse
+  - dbGaP
+  - GEO
+  - SRA
+  - EGA
+  - portal
+  - CRDC
+  - Zenodo
+  - figshare
+  - cellxgene
+  - supplementary
+  - not_deposited
+  - not_stated

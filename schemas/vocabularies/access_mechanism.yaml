@@ -1,0 +1,10 @@
+vocabulary: access_mechanism
+version: 1.0.0
+values:
+  - direct_download
+  - application
+  - data_use_agreement
+  - contact_author
+  - portal_login
+  - cloud_bucket
+  - not_stated

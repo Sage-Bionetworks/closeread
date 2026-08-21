@@ -1,0 +1,9 @@
+vocabulary: availability_statement
+version: 1.0.0
+values:
+  - full_deposit
+  - partial_deposit
+  - available_on_request
+  - within_paper
+  - third_party_restricted
+  - no_statement

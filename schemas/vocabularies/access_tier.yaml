@@ -1,0 +1,3 @@
+vocabulary: access_tier
+version: 1.0.0
+values: [open, controlled, registered, on_request, not_stated]

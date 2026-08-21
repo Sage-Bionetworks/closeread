@@ -1,0 +1,82 @@
+# The availability pass. Spec §4.2, §7.2, §9.2.
+pass: availability
+version: 1.0.0
+applies_to: [corpus, citing]
+sections: null          # null means read the whole document
+window_chars: 30000
+classes:
+  data_availability:
+    # Rule 6.3: a document with no statement gets an explicit absence record.
+    absence_attributes: {statement_kind: no_statement}
+    description: >
+      How this document says its data can be obtained, or how it obtained data
+      from elsewhere. One record per distinct statement. The verb decides the
+      direction: depositing, releasing, or making available means released;
+      downloading, obtaining, or accessing someone else's data means acquired.
+      The same accession can appear in either direction.
+    attributes:
+      accession:        {type: string}
+      repository:       {vocabulary: repository}
+      access_tier:      {vocabulary: access_tier}
+      access_mechanism: {vocabulary: access_mechanism}
+      statement_kind:   {vocabulary: availability_statement}
+      direction:        {vocabulary: release_or_acquire}
+    examples:
+      - text: "Sequencing data generated in this study are deposited in Synapse (syn12345678) and are available after registration."
+        extractions:
+          - span: "deposited in Synapse (syn12345678)"
+            accession: syn12345678
+            repository: Synapse
+            access_tier: registered
+            access_mechanism: portal_login
+            statement_kind: full_deposit
+            direction: released
+      - text: "We obtained preprocessed count matrices from GEO (GSE178431) for comparison."
+        extractions:
+          - span: "obtained preprocessed count matrices from GEO (GSE178431)"
+            accession: GSE178431
+            repository: GEO
+            access_tier: open
+            access_mechanism: direct_download
+            statement_kind: full_deposit
+            direction: acquired
+      - text: "Raw imaging data are available from the corresponding author upon reasonable request."
+        extractions:
+          - span: "available from the corresponding author upon reasonable request"
+            accession: not_stated
+            repository: not_deposited
+            access_tier: on_request
+            access_mechanism: contact_author
+            statement_kind: available_on_request
+            direction: released
+  code_availability:
+    absence_attributes: {statement_kind: no_statement}
+    description: >
+      How this document says its analysis code or software can be obtained.
+      One record per distinct statement or repository.
+    attributes:
+      url:                {type: string}
+      host:               {vocabulary: code_host}
+      license:            {type: string}
+      version_or_doi:     {type: string}
+      statement_kind:     {vocabulary: availability_statement}
+      what_the_code_does: {type: string}
+    examples:
+      - text: "All analysis code is available at https://github.com/lab/atlas-analysis under the MIT license (v1.2, doi:10.5281/zenodo.111)."
+        extractions:
+          - span: "code is available at https://github.com/lab/atlas-analysis under the MIT license (v1.2, doi:10.5281/zenodo.111)"
+            url: https://github.com/lab/atlas-analysis
+            host: GitHub
+            license: MIT
+            version_or_doi: doi:10.5281/zenodo.111
+            statement_kind: full_deposit
+            what_the_code_does: analysis code for the study
+      - text: "Custom scripts used for segmentation are available from the authors on request."
+        extractions:
+          - span: "Custom scripts used for segmentation are available from the authors on request"
+            url: not_stated
+            host: on_request
+            license: not_stated
+            version_or_doi: not_stated
+            statement_kind: available_on_request
+            what_the_code_does: segmentation scripts
