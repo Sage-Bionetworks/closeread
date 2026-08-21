@@ -1,0 +1,11 @@
+vocabulary: study_design
+version: 1.0.0
+values:
+  - cross_sectional
+  - longitudinal
+  - case_control
+  - cohort
+  - method_development
+  - reanalysis
+  - review
+  - not_stated

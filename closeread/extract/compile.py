@@ -45,6 +45,9 @@ class CompiledPass:
     sections: list[str] | None
     window_chars: int
     classes: dict[str, ClassDef]
+    # "full_text" (default) or "abstract" (§4.2 abstract pass reads abstracts,
+    # one document per request, never packed — §4.2.5).
+    text_source: str = "full_text"
 
     # ---- prompt ----------------------------------------------------------
     def prompt(self, document_text: str) -> str:
@@ -72,7 +75,11 @@ class CompiledPass:
             lines.append(cls.description.strip())
             lines.append("Attributes:")
             for attr in cls.attributes.values():
-                if attr.values:
+                if attr.type == "array" and attr.values:
+                    lines.append(f"- {attr.name}: a list of one or more of {json.dumps(attr.values)}")
+                elif attr.type == "array":
+                    lines.append(f"- {attr.name}: a list of free-text values")
+                elif attr.values:
                     lines.append(f"- {attr.name}: one of {json.dumps(attr.values)}")
                 else:
                     lines.append(f"- {attr.name}: free text, verbatim from the document where possible")
@@ -105,7 +112,11 @@ class CompiledPass:
         properties: dict[str, Any] = {}
         for cls in self.classes.values():
             item_props: dict[str, Any] = {"source_quote": {"type": "STRING"}}
-            item_props.update({a: {"type": "STRING"} for a in cls.attributes})
+            for a, spec in cls.attributes.items():
+                if spec.type == "array":
+                    item_props[a] = {"type": "ARRAY", "items": {"type": "STRING"}}
+                else:
+                    item_props[a] = {"type": "STRING"}
             properties[cls.name] = {
                 "type": "ARRAY",
                 "items": {
@@ -152,8 +163,12 @@ class CompiledPass:
             if not spec.values:
                 continue
             value = attributes.get(attr_name)
-            if value is not None and str(value) not in spec.values:
-                drift.append(f"{attr_name}={value}")
+            if value is None:
+                continue
+            elements = value if isinstance(value, list) else [value]
+            for el in elements:
+                if str(el) not in spec.values:
+                    drift.append(f"{attr_name}={el}")
         return drift
 
 
@@ -195,4 +210,5 @@ def load_pass(name_or_path: str | Path) -> CompiledPass:
         sections=raw.get("sections"),
         window_chars=int(raw.get("window_chars", 30_000)),
         classes=classes,
+        text_source=raw.get("text_source", "full_text"),
     )

@@ -51,10 +51,22 @@ def run_collect(run_id: str, settings: Settings, log=print) -> dict[str, Any]:
     key_index: dict[str, dict[str, Any]] = handoff["key_index"]
     doc_ids = {info["doc_id"] for info in key_index.values()}
     parsed_docs: dict[str, ParsedDocument] = {}
-    for doc_id in doc_ids:
-        p = out_dir / "parsed" / f"{doc_id}.json"
-        if p.exists():
-            parsed_docs[doc_id] = load_parsed(p)
+    if compiled.text_source == "abstract":
+        from closeread.config import load_community
+        from closeread.extract import load_abstract_docs
+
+        config = load_community(community)
+        for doc_type in ("corpus", "citing"):
+            for doc_id, parsed in load_abstract_docs(config, settings, doc_type).items():
+                if doc_id in doc_ids:
+                    parsed_docs[doc_id] = parsed
+        scope = EvidenceScope.abstract_only
+    else:
+        for doc_id in doc_ids:
+            p = out_dir / "parsed" / f"{doc_id}.json"
+            if p.exists():
+                parsed_docs[doc_id] = load_parsed(p)
+        scope = EvidenceScope.full_text
 
     stamp = {
         "run_id": run_id,
@@ -81,7 +93,7 @@ def run_collect(run_id: str, settings: Settings, log=print) -> dict[str, Any]:
                 attributes=attrs,
                 enum_drift=[],
                 reject_reason=reason,
-                evidence_scope=EvidenceScope.full_text,
+                evidence_scope=scope,
                 **stamp,
             )
         )
@@ -133,7 +145,7 @@ def run_collect(run_id: str, settings: Settings, log=print) -> dict[str, Any]:
                         alignment_status=aligned.status,
                         attributes=attrs,
                         enum_drift=compiled.enum_drift(cls_name, attrs),
-                        evidence_scope=EvidenceScope.full_text,
+                        evidence_scope=scope,
                         **stamp,
                     )
                 )
@@ -169,7 +181,7 @@ def run_collect(run_id: str, settings: Settings, log=print) -> dict[str, Any]:
                     alignment_status=AlignmentStatus.match_exact,
                     attributes=attrs,
                     enum_drift=[],
-                    evidence_scope=EvidenceScope.full_text,
+                    evidence_scope=scope,
                     **stamp,
                 )
             )

@@ -26,6 +26,26 @@ def load_parsed_docs(
     return docs
 
 
+def load_abstract_docs(
+    config: CommunityConfig, settings: Settings, doc_type: str = "corpus"
+) -> dict[str, ParsedDocument]:
+    """Abstract-pass corpus: every document with an abstract, whether or not
+    full text exists (§7.4 — the abstract pass reaches documents no other pass
+    can)."""
+    from closeread.parse import SectionIndex
+
+    out_dir = settings.community_dir(config.community)
+    docs: dict[str, ParsedDocument] = {}
+    for doc in read_jsonl(out_dir / "documents.jsonl"):
+        if doc.get("doc_type") != doc_type or not doc.get("abstract"):
+            continue
+        text = doc["abstract"]
+        index = SectionIndex()
+        index.add(["abstract"], "Abstract", 0, len(text))
+        docs[doc["doc_id"]] = ParsedDocument(doc_title=doc.get("title"), text=text, sections=index)
+    return docs
+
+
 def run_extract(
     config: CommunityConfig,
     settings: Settings,
@@ -42,7 +62,10 @@ def run_extract(
         sys.exit(1)
     model = model_override or batch_mod.STRONG_MODEL
 
-    docs = load_parsed_docs(config, settings, doc_type)
+    if compiled.text_source == "abstract":
+        docs = load_abstract_docs(config, settings, doc_type)
+    else:
+        docs = load_parsed_docs(config, settings, doc_type)
     if not docs:
         log("no parsed documents found; run acquire and parse first")
         sys.exit(1)

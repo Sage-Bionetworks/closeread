@@ -1,0 +1,63 @@
+# The analysis pass. Spec §4.2, §7.2.
+pass: analysis
+version: 1.0.0
+applies_to: [corpus, citing]
+sections: null
+window_chars: 30000
+classes:
+  cell_typing:
+    description: >
+      One record per cell-typing step the authors performed: how cells were
+      grouped or assigned identities. A pipeline usually has several steps
+      (clustering, then marker-based annotation, for example); record each
+      step separately.
+    attributes:
+      step:             {vocabulary: cell_typing_step}
+      algorithm:        {type: string}
+      software:         {type: string}
+      label_vocabulary: {type: string}
+    examples:
+      - text: "Cells were clustered with the Leiden algorithm in scanpy and clusters were annotated by canonical marker genes."
+        extractions:
+          - span: "clustered with the Leiden algorithm in scanpy"
+            step: clustering
+            algorithm: Leiden
+            software: scanpy
+            label_vocabulary: not_stated
+          - span: "clusters were annotated by canonical marker genes"
+            step: marker_based_annotation
+            algorithm: not_stated
+            software: not_stated
+            label_vocabulary: canonical marker genes
+      - text: "Cell types were assigned by label transfer from the Azimuth PBMC reference."
+        extractions:
+          - span: "assigned by label transfer from the Azimuth PBMC reference"
+            step: reference_mapping
+            algorithm: label transfer
+            software: Azimuth
+            label_vocabulary: Azimuth PBMC reference
+  tme_algorithm:
+    description: >
+      A tumour-microenvironment analysis method the authors applied: spatial
+      statistics, neighbourhood analysis, cell-cell interaction inference,
+      deconvolution, or similar. One record per method.
+    attributes:
+      name:     {type: string}
+      category: {vocabulary: tme_category}
+      software: {type: string}
+      purpose:  {type: string}
+    examples:
+      - text: "Recurrent cellular neighborhoods were identified by k-means clustering of cell-type composition windows, following the CODEX neighborhood analysis of Schurch et al."
+        extractions:
+          - span: "Recurrent cellular neighborhoods were identified by k-means clustering of cell-type composition windows"
+            name: cellular neighborhood analysis
+            category: neighborhood_analysis
+            software: not_stated
+            purpose: identify recurrent cellular neighborhoods
+      - text: "Ligand-receptor interactions between tumor and immune cells were inferred with CellPhoneDB."
+        extractions:
+          - span: "Ligand-receptor interactions between tumor and immune cells were inferred with CellPhoneDB"
+            name: ligand-receptor inference
+            category: ligand_receptor_analysis
+            software: CellPhoneDB
+            purpose: infer tumor-immune interactions

@@ -1,0 +1,19 @@
+# Deliberately coarser than assay_type (§7.4): an abstract says "spatial
+# transcriptomics", it rarely says "10x Visium HD".
+vocabulary: key_methods
+version: 1.0.0
+values:
+  - single_cell
+  - spatial_transcriptomics
+  - spatial_proteomics
+  - multiplex_imaging
+  - histology
+  - bulk_omics
+  - genomics
+  - epigenomics
+  - proteomics
+  - metabolomics
+  - multi_omic_integration
+  - computational_method
+  - clinical
+  - other

@@ -1,0 +1,3 @@
+vocabulary: data_level
+version: 1.0.0
+values: [raw, processed, derived, annotation, visualization, not_stated]

@@ -1,0 +1,64 @@
+# The measurement pass. Spec §4.2, §7.2.
+pass: measurement
+version: 1.0.0
+applies_to: [corpus, citing]
+sections: null
+window_chars: 30000
+classes:
+  assay_platform:
+    description: >
+      An assay this document's authors performed, at three separate levels
+      (§7.2): the modality class, the named assay or chemistry, and the vendor
+      instrument. One record per distinct assay. Do not merge the levels into
+      one string. Only assays the authors themselves ran, not assays merely
+      cited or compared against.
+    attributes:
+      assay_type:  {vocabulary: assay_type}
+      assay_name:  {type: string}
+      platform:    {type: string}
+      vendor:      {type: string}
+    examples:
+      - text: "Tissues were profiled by CODEX multiplexed imaging on an Akoya PhenoCycler-Fusion."
+        extractions:
+          - span: "profiled by CODEX multiplexed imaging on an Akoya PhenoCycler-Fusion"
+            assay_type: multiplex_imaging
+            assay_name: CODEX
+            platform: Akoya PhenoCycler-Fusion
+            vendor: Akoya
+      - text: "Single-cell RNA sequencing libraries were prepared with the 10x Genomics Chromium 3' v3 kit and sequenced on a NovaSeq 6000."
+        extractions:
+          - span: "Single-cell RNA sequencing libraries were prepared with the 10x Genomics Chromium 3' v3 kit"
+            assay_type: scRNA_seq
+            assay_name: Chromium 3' v3
+            platform: not_stated
+            vendor: 10x Genomics
+  object_format:
+    description: >
+      A data object this document's authors produced, and its file format.
+      One record per distinct object-format pair. Include the processing
+      level when stated.
+    attributes:
+      object_description: {type: string}
+      format:             {type: string}
+      level:              {vocabulary: data_level}
+      assay_name:         {type: string}
+    examples:
+      - text: "Stitched OME-TIFF images and single-cell segmentation masks were generated for each CODEX run."
+        extractions:
+          - span: "Stitched OME-TIFF images"
+            object_description: stitched multiplexed images
+            format: OME-TIFF
+            level: processed
+            assay_name: CODEX
+          - span: "single-cell segmentation masks"
+            object_description: segmentation masks
+            format: not_stated
+            level: derived
+            assay_name: CODEX
+      - text: "Count matrices were exported as h5ad objects for downstream analysis."
+        extractions:
+          - span: "Count matrices were exported as h5ad objects"
+            object_description: count matrices
+            format: h5ad
+            level: processed
+            assay_name: not_stated

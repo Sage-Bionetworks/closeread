@@ -1,0 +1,13 @@
+vocabulary: tme_category
+version: 1.0.0
+values:
+  - neighborhood_analysis
+  - spatial_statistics
+  - cell_cell_interaction
+  - ligand_receptor_analysis
+  - deconvolution
+  - ecotype_or_community_detection
+  - immune_infiltration_scoring
+  - tumor_microenvironment_classification
+  - other
+  - not_stated

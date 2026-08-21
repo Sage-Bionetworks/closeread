@@ -1,0 +1,23 @@
+vocabulary: assay_type
+version: 1.0.0
+values:
+  - scRNA_seq
+  - snRNA_seq
+  - scATAC_seq
+  - snATAC_seq
+  - bulk_RNA_seq
+  - whole_exome_seq
+  - whole_genome_seq
+  - targeted_dna_seq
+  - spatial_transcriptomics
+  - multiplex_imaging
+  - imaging_mass_cytometry
+  - mass_cytometry
+  - flow_cytometry
+  - mass_spectrometry_proteomics
+  - methylation_profiling
+  - histology
+  - electron_microscopy
+  - single_cell_multiome
+  - other
+  - not_stated

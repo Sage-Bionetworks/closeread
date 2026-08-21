@@ -1,0 +1,12 @@
+vocabulary: cell_typing_step
+version: 1.0.0
+values:
+  - clustering
+  - marker_based_annotation
+  - reference_mapping
+  - manual_annotation
+  - classifier
+  - deconvolution
+  - segmentation_based_phenotyping
+  - other
+  - not_stated

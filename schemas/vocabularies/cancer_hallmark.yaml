@@ -1,0 +1,19 @@
+# The 14 Hanahan-Weinberg hallmarks (Hallmarks of Cancer: New Dimensions, 2022).
+vocabulary: cancer_hallmark
+version: 1.0.0
+values:
+  - sustaining_proliferative_signaling
+  - evading_growth_suppressors
+  - resisting_cell_death
+  - enabling_replicative_immortality
+  - inducing_or_accessing_vasculature
+  - activating_invasion_and_metastasis
+  - genome_instability_and_mutation
+  - tumor_promoting_inflammation
+  - deregulating_cellular_metabolism
+  - avoiding_immune_destruction
+  - unlocking_phenotypic_plasticity
+  - nonmutational_epigenetic_reprogramming
+  - polymorphic_microbiomes
+  - senescent_cells
+  - not_stated

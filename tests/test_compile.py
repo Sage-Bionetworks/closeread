@@ -35,9 +35,11 @@ class TestEveryPassDefinition:
                         spec = cls.attributes.get(attr_name)
                         assert spec is not None, f"{cls.name}: example uses unknown attribute {attr_name}"
                         if spec.values:
-                            assert str(value) in spec.values or str(value) == "not_stated", (
-                                f"{cls.name}.{attr_name}: example value {value!r} not in vocabulary"
-                            )
+                            elements = value if isinstance(value, list) else [value]
+                            for el in elements:
+                                assert str(el) in spec.values or str(el) == "not_stated", (
+                                    f"{cls.name}.{attr_name}: example value {el!r} not in vocabulary"
+                                )
 
     def test_example_attributes_complete(self, pass_file):
         # §3.4: attribute completeness is demonstrated, not just stated.

@@ -1,0 +1,36 @@
+# The abstract pass. Spec §4.2, §7.4. Reads the abstract only; one document
+# per request (§4.2.5: never pack abstracts).
+pass: abstract
+version: 1.0.0
+applies_to: [corpus, citing]
+sections: null
+window_chars: 30000
+text_source: abstract
+classes:
+  abstract_claim:
+    description: >
+      The headline content of this abstract: its main claim, hypothesis if
+      stated, and core result. Exactly one record per abstract. key_methods is
+      deliberately coarse: use only what the abstract itself states, at the
+      granularity it states it.
+    attributes:
+      main_claim:      {type: string}
+      hypothesis:      {type: string}
+      core_result:     {type: string}
+      cancer_hallmark: {type: array, vocabulary: cancer_hallmark}
+      key_methods:     {type: array, vocabulary: key_methods}
+      study_design:    {vocabulary: study_design}
+      cancer_type:     {type: string}
+      organ_system:    {type: string}
+    examples:
+      - text: "Colorectal cancers evolve through a stereotyped progression. Here we profiled 31 adenomas by single-cell RNA sequencing and multiplexed imaging, and show that immune exclusion precedes malignant transformation. These results identify an early window for interception."
+        extractions:
+          - span: "immune exclusion precedes malignant transformation"
+            main_claim: immune exclusion precedes malignant transformation in colorectal adenomas
+            hypothesis: not_stated
+            core_result: immune exclusion was observed before malignant transformation across 31 profiled adenomas
+            cancer_hallmark: [avoiding_immune_destruction]
+            key_methods: [single_cell, multiplex_imaging]
+            study_design: cohort
+            cancer_type: colorectal cancer
+            organ_system: gastrointestinal
