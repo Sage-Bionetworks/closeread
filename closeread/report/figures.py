@@ -118,10 +118,26 @@ def render_f7(
 
     rows = con.execute(
         """
+        -- In a multi-run union, an absence record from one run must not
+        -- coexist with a real statement from another: no_statement counts a
+        -- document only when NO run found a real statement for that class.
+        WITH base AS (
+            SELECT doc_id, doc_type, extraction_class, statement_kind
+            FROM read_csv_auto(?)
+            WHERE statement_kind IS NOT NULL
+        ),
+        has_real AS (
+            SELECT DISTINCT doc_id, extraction_class
+            FROM base WHERE statement_kind != 'no_statement'
+        )
         SELECT doc_type, extraction_class, statement_kind,
                count(DISTINCT doc_id) AS n_docs
-        FROM read_csv_auto(?)
-        WHERE statement_kind IS NOT NULL
+        FROM base b
+        WHERE statement_kind != 'no_statement'
+           OR NOT EXISTS (
+                SELECT 1 FROM has_real r
+                WHERE r.doc_id = b.doc_id AND r.extraction_class = b.extraction_class
+           )
         GROUP BY ALL
         """,
         [str(gold_path)],
