@@ -171,6 +171,23 @@ def acquire_tier_c(config: CommunityConfig, settings: Settings, log=print) -> No
         by_month[brx.month_prefix(d["pub_date"])][brx.article_id_from_doi(d["doi"])] = d
 
     fetched: dict[str, str] = {}  # doc_id -> filename
+    # Resume support: XML already on disk (from an interrupted sweep) counts
+    # as fetched and its month is not re-scanned for it.
+    for d in pending:
+        existing_xml = fulltext_dir / f"{d['doc_id']}.preprint.xml"
+        if existing_xml.exists():
+            fetched[d["doc_id"]] = existing_xml.name
+    if fetched:
+        log(f"resuming: {len(fetched)} preprints already on disk")
+
+    def _flush() -> None:
+        current = {d["doc_id"] for d in pending if d["doc_id"] in fetched}
+        for d in docs:
+            if d["doc_id"] in current:
+                d["oa_status"] = "fulltext"
+                d["source_version"] = "meca"
+        write_jsonl(out_dir / "documents.jsonl", docs)
+
     for bucket in (brx.BIORXIV_BUCKET, brx.MEDRXIV_BUCKET):
         remaining_months = {
             prefix: {aid: d for aid, d in wanted.items() if d["doc_id"] not in fetched}
@@ -196,12 +213,9 @@ def acquire_tier_c(config: CommunityConfig, settings: Settings, log=print) -> No
                 dest = fulltext_dir / f"{doc['doc_id']}.preprint.xml"
                 dest.write_bytes(xml)
                 fetched[doc["doc_id"]] = dest.name
+            _flush()  # checkpoint after every month so an interrupt loses nothing
 
-    for d in docs:
-        if d["doc_id"] in fetched:
-            d["oa_status"] = "fulltext"
-            d["source_version"] = "meca"
-    write_jsonl(out_dir / "documents.jsonl", docs)
+    _flush()
     log(
         f"tier C: fetched {len(fetched)} of {len(pending)} pending preprints; "
         f"{meter.requests:,} requester-pays requests, {meter.bytes / 1e9:.2f} GB transferred"
