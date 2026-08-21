@@ -60,7 +60,10 @@ def connect(settings: Settings, community: str, run_ids: list[str]) -> duckdb.Du
         CREATE VIEW v_records AS
         SELECT r.*, d.doc_type, d.group_key, d.pub_date, d.venue
         FROM records r JOIN documents d USING (doc_id)
-        WHERE r.judge_verdict IS DISTINCT FROM 'rejected'
+        -- judge_verdict is all-null before the judge stage, which DuckDB
+        -- types as JSON; strip any JSON quoting before comparing.
+        WHERE r.judge_verdict IS NULL
+           OR trim(CAST(r.judge_verdict AS VARCHAR), '"') IS DISTINCT FROM 'rejected'
         """
     )
     return con

@@ -98,6 +98,18 @@ def acquire_corpus(config: CommunityConfig, settings: Settings, log=print) -> li
             )
         )
 
+    # Two seed rows can resolve to the same OpenAlex work (e.g. a preprint
+    # and its published version). Keep one row per doc_id, preferring the
+    # fulltext one.
+    by_id: dict[str, Document] = {}
+    for d in documents:
+        cur = by_id.get(d.doc_id)
+        if cur is None or (d.oa_status == "fulltext" and cur.oa_status != "fulltext"):
+            by_id[d.doc_id] = d
+    if len(by_id) < len(documents):
+        log(f"collapsed {len(documents) - len(by_id)} duplicate doc_id rows")
+    documents = list(by_id.values())
+
     docs_path = out_dir / "documents.jsonl"
     write_jsonl(docs_path, documents)
     n_full = sum(1 for d in documents if d.oa_status == "fulltext")
