@@ -128,5 +128,28 @@ def report(runs: tuple[str, ...], community: str) -> None:
     run_report(load_community(community), Settings(), list(runs))
 
 
+@main.command("gold-sample")
+@click.option("--run", "run_id", required=True)
+@click.option("--community", default="htan")
+@click.option("--size", default=200, type=int)
+def gold_sample(run_id: str, community: str, size: int) -> None:
+    """Export a labelling CSV (candidate-bearing sampling frame, §5.8)."""
+    from closeread.judge.gold_sample import export_label_sample
+
+    export_label_sample(run_id, Settings(), community, size=size)
+
+
+@main.command("gold-import")
+@click.option("--csv", "csv_path", required=True, type=click.Path(exists=True))
+@click.option("--community", default="htan")
+def gold_import(csv_path: str, community: str) -> None:
+    """Import filled-in human labels into gold_labels.jsonl."""
+    from pathlib import Path
+
+    from closeread.judge.gold_sample import import_labels
+
+    import_labels(Path(csv_path), Settings(), community)
+
+
 if __name__ == "__main__":
     main()

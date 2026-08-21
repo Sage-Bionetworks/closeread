@@ -1,0 +1,126 @@
+"""REPORT.md assembly. Spec §10.2, §11.4, §11.6.
+
+Every number is computed here at render time from stored artifacts. No typed
+numbers. Section 5 ("what could not be measured") is required and is written
+from measured values.
+"""
+
+from __future__ import annotations
+
+import datetime as dt
+import json
+from collections import Counter
+from pathlib import Path
+
+from closeread.config import CommunityConfig, Settings
+from closeread.jsonl import read_jsonl
+from closeread.report.render import records_for_runs, run_summaries
+
+
+def render_report_md(
+    config: CommunityConfig, settings: Settings, run_ids: list[str], log=print
+) -> Path:
+    out_dir = settings.community_dir(config.community)
+    docs = list(read_jsonl(out_dir / "documents.jsonl"))
+    corpus = [d for d in docs if d["doc_type"] == "corpus"]
+    citing = [d for d in docs if d["doc_type"] == "citing"]
+    records = records_for_runs(settings, config.community, run_ids)
+    summaries = run_summaries(settings, config.community, run_ids)
+    manifest_path = settings.report_dir / "figure_manifest.json"
+    manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
+
+    def n(pred, pop):
+        return sum(1 for d in pop if pred(d))
+
+    snapshot_dates = sorted({d.get("snapshot_date") for d in docs if d.get("snapshot_date")})
+    corpus_full = n(lambda d: d.get("oa_status") == "fulltext", corpus)
+    citing_full = n(lambda d: d.get("oa_status") == "fulltext", citing)
+    corpus_abs = n(lambda d: d.get("abstract"), corpus)
+    citing_abs = n(lambda d: d.get("abstract"), citing)
+    merged_pairs = sum(len(d.get("merged_from") or []) for d in citing)
+    tier_c = n(lambda d: d.get("oa_status") == "preprint_requester_pays_pending", citing)
+    overlap = Counter(d.get("author_overlap") for d in citing if d.get("author_overlap"))
+    edges = sum(1 for _ in read_jsonl(out_dir / "citation_edges.jsonl")) if (out_dir / "citation_edges.jsonl").exists() else 0
+
+    by_class = Counter(r["extraction_class"] for r in records)
+    judged = sum(1 for r in records if r.get("judge_verdict"))
+    total_stop = sum(s["finish_reasons"].get("STOP", 0) for s in summaries)
+    total_resp = sum(s["n_responses"] for s in summaries)
+    models = sorted({s["model"] for s in summaries})
+    gold_labels_path = out_dir / "gold_labels.jsonl"
+    n_labels = sum(1 for _ in read_jsonl(gold_labels_path)) if gold_labels_path.exists() else 0
+
+    low_attrs: list[str] = []
+    for s in summaries:
+        for cls, attrs in (s.get("attribute_population") or {}).items():
+            for attr, share in attrs.items():
+                if share < 0.5:
+                    low_attrs.append(f"`{cls}.{attr}` {share:.0%} (run {s['run_id']})")
+
+    lines: list[str] = []
+    a = lines.append
+    a(f"# {config.display_name}: how the datasets were built, and how they were reused")
+    a("")
+    a(f"Generated {dt.date.today().isoformat()} by closeread. Every number in this")
+    a("report is computed from stored, quotation-grounded records; figure CSVs and")
+    a("`figure_manifest.json` carry per-figure provenance.")
+    a("")
+    a("## 1. What was measured")
+    a("")
+    a(f"- OpenAlex snapshot date(s): {', '.join(snapshot_dates) or 'not recorded'}")
+    a(f"- Corpus documents: {len(corpus)}, of which {corpus_full} with full text and {corpus_abs} with an abstract")
+    a(f"- Citing documents (deduplicated): {len(citing)}, of which {citing_full} with full text and {citing_abs} with an abstract")
+    a(f"- Citation edges: {edges}")
+    a(f"- Preprint/published pairs merged: {merged_pairs}")
+    a(f"- Author overlap of citing documents: " + ", ".join(f"{k} {v}" for k, v in overlap.most_common()))
+    a(f"- Records in this report's runs: {len(records)} across {len(by_class)} classes; {judged} judged")
+    a("")
+    a("## 2. How the datasets were built")
+    a("")
+    a("Figures F1 (format spread), F2 (cell typing by centre), F3 (TME methods),")
+    a("F7 (availability statement kinds). See `figures/`.")
+    a("")
+    a("## 3. How they were reused")
+    a("")
+    a("Figures F4 (engagement kinds) and F5/F5b (data-reuse tasks split by author")
+    a("overlap). Reuse aggregates are always split internal vs external.")
+    a("")
+    a("## 4. Whether reuse compounds")
+    a("")
+    a("Figure F6 (provenance chain).")
+    a("")
+    a("## 5. What could not be measured")
+    a("")
+    if tier_c:
+        a(f"- {tier_c} citing preprints sit in requester-pays buckets not yet fetched (tier C); they contribute abstracts only.")
+    no_text = len(citing) - citing_full - tier_c
+    a(f"- {no_text} citing documents have no full-text route; the abstract pass is the only reach.")
+    if n_labels < 150:
+        a(f"- Judge precision is NOT yet measured against human labels: {n_labels} of the required 150 labels exist (§11.3 unmet).")
+    if low_attrs:
+        a(f"- Attributes populated below 50 percent: " + "; ".join(sorted(set(low_attrs))[:12]) + ".")
+    a("")
+    a("## 6. Methods")
+    a("")
+    a(f"- Extraction models: {', '.join(models)} (batch API).")
+    a(f"- Responses ending STOP: {total_stop} of {total_resp} ({total_stop / total_resp:.1%})." if total_resp else "- No responses collected.")
+    a("- Runs in this report:")
+    a("")
+    a("| run_id | pass | model | prompt_version | canary | records |")
+    a("|---|---|---|---|---|---|")
+    run_records = Counter(r["run_id"] for r in records)
+    for s in summaries:
+        a(
+            f"| {s['run_id']} | {s['pass_name']} | {s['model']} | {s['prompt_version']} | "
+            f"{'passed' if s.get('canary_passed') else 'FAILED/SKIPPED'} | {run_records.get(s['run_id'], 0)} |"
+        )
+    a("")
+    a(f"- Human-labelled gold records: {n_labels} (target 150; see §11.3).")
+    a("- Rejected and unaligned records are retained on disk with status fields; nothing is deleted.")
+    a("")
+
+    settings.report_dir.mkdir(parents=True, exist_ok=True)
+    dest = settings.report_dir / "REPORT.md"
+    dest.write_text("\n".join(lines))
+    log(f"REPORT.md -> {dest}")
+    return dest

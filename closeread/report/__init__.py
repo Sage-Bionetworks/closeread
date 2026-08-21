@@ -43,4 +43,8 @@ def run_report(config: CommunityConfig, settings: Settings, run_ids: list[str], 
     log(f"rendered {entry['figure']}: {entry['n_records']} records")
 
     manifest_path.write_text(json.dumps(manifest, indent=2))
+
+    from closeread.report.report_md import render_report_md
+
+    render_report_md(config, settings, run_ids, log=log)
     log(f"figures -> {figures_dir}")
