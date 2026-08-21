@@ -46,6 +46,69 @@ def load_abstract_docs(
     return docs
 
 
+def _anchor_windows(
+    config: CommunityConfig,
+    settings: Settings,
+    doc_type: str,
+    radius: int,
+    log=print,
+) -> tuple[dict[str, ParsedDocument], dict[str, list[tuple[int, int]]]]:
+    """Documents and merged anchor windows for the provenance pass (§4.2.3).
+    Documents without anchors are excluded from the run."""
+    from closeread.candidates.anchors import (
+        accession_anchors,
+        citation_anchors,
+        identity_anchors,
+        merge_anchor_windows,
+    )
+
+    out_dir = settings.community_dir(config.community)
+    corpus = [d for d in read_jsonl(out_dir / "documents.jsonl") if d["doc_type"] == "corpus"]
+    corpus_dois = {d["doi"] for d in corpus if d.get("doi")}
+    corpus_pmids = {d["pmid"] for d in corpus if d.get("pmid")}
+    corpus_doc_ids = {d["doc_id"] for d in corpus}
+
+    # Accessions the corpus itself mentions: generic accessions anchor only
+    # when they appear in corpus text.
+    corpus_accessions: set[str] = set()
+    cand_path = out_dir / "candidates.jsonl"
+    if cand_path.exists():
+        for c in read_jsonl(cand_path):
+            if c["doc_id"] in corpus_doc_ids:
+                corpus_accessions.add(c["value"])
+
+    docs_meta = {
+        d["doc_id"]: d
+        for d in read_jsonl(out_dir / "documents.jsonl")
+        if d["doc_type"] == doc_type and d.get("oa_status") == "fulltext"
+    }
+    fulltext_dir = out_dir / "raw" / "fulltext"
+
+    docs: dict[str, ParsedDocument] = {}
+    windows: dict[str, list[tuple[int, int]]] = {}
+    n_anchors = 0
+    for doc_id, meta in docs_meta.items():
+        parsed_path = out_dir / "parsed" / f"{doc_id}.json"
+        if not parsed_path.exists():
+            continue
+        parsed = load_parsed(parsed_path)
+        anchors = identity_anchors(parsed.text, config)
+        anchors += accession_anchors(parsed.text, config, corpus_accessions)
+        xml_path = fulltext_dir / f"{meta['pmcid']}.{meta['source_version']}.xml"
+        if xml_path.exists():
+            anchors += citation_anchors(xml_path, parsed, corpus_dois, corpus_pmids)
+        merged = merge_anchor_windows(anchors, len(parsed.text), radius)
+        if merged:
+            docs[doc_id] = parsed
+            windows[doc_id] = merged
+            n_anchors += len(anchors)
+    log(
+        f"anchor windows: {sum(len(w) for w in windows.values())} windows from "
+        f"{n_anchors} anchors in {len(docs)} of {len(docs_meta)} documents"
+    )
+    return docs, windows
+
+
 def run_extract(
     config: CommunityConfig,
     settings: Settings,
@@ -62,15 +125,25 @@ def run_extract(
         sys.exit(1)
     model = model_override or batch_mod.STRONG_MODEL
 
+    windows_by_doc = None
+    preamble = None
     if compiled.text_source == "abstract":
         docs = load_abstract_docs(config, settings, doc_type)
+    elif compiled.text_source == "anchors":
+        docs, windows_by_doc = _anchor_windows(config, settings, doc_type, compiled.anchor_radius, log)
+        preamble = (
+            f"The consortium of interest is {config.display_name} "
+            f"(also referred to as: {', '.join(config.identity_strings)}). "
+            "The text below consists of excerpts from one citing publication, "
+            "selected around mentions of that consortium, its accessions, or its papers."
+        )
     else:
         docs = load_parsed_docs(config, settings, doc_type)
     if not docs:
         log("no parsed documents found; run acquire and parse first")
         sys.exit(1)
 
-    lines, key_index = batch_mod.build_requests(compiled, docs)
+    lines, key_index = batch_mod.build_requests(compiled, docs, windows_by_doc, preamble)
     est = batch_mod.estimate(lines, model)
     log(f"pass={pass_name} model={model} documents={len(docs)}")
     log(est.describe())

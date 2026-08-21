@@ -1,0 +1,10 @@
+vocabulary: access_route
+version: 1.0.0
+values:
+  - direct_download
+  - portal
+  - application
+  - data_use_agreement
+  - from_authors
+  - from_publication
+  - not_stated

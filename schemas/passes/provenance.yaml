@@ -1,0 +1,60 @@
+# The provenance pass. Spec §4.2, §4.2.3, §7.3. Reads anchor windows in
+# citing documents only — never whole documents (57 percent attribution
+# precision when whole documents were read in the prototype).
+pass: provenance
+version: 1.0.0
+applies_to: [citing]
+sections: null
+window_chars: 30000
+text_source: anchors
+anchor_radius: 1500
+classes:
+  engagement:
+    description: >
+      How this excerpt engages with the consortium named in the preamble. Only
+      claims about THAT consortium's data, methods, tools, or publications —
+      not the citing paper's own unrelated work. engagement_kind takes every
+      kind the excerpt supports. data_task is set only when data_reuse is
+      present: the task the reused data served. method_detail is set when
+      method_reuse or tool_reuse is present.
+    attributes:
+      engagement_kind: {type: array, vocabulary: engagement_kind}
+      data_task:       {vocabulary: data_task}
+      method_detail:   {type: string}
+    examples:
+      - text: "We downloaded the HTAN colorectal atlas single-cell profiles and used them to train our cell-state classifier."
+        extractions:
+          - span: "downloaded the HTAN colorectal atlas single-cell profiles and used them to train our cell-state classifier"
+            engagement_kind: [data_reuse]
+            data_task: training_data
+            method_detail: not_stated
+      - text: "Following the neighborhood analysis approach of the HTAN breast atlas (Danenberg et al.), we computed spatial communities; HTAN images served as an independent comparison cohort."
+        extractions:
+          - span: "Following the neighborhood analysis approach of the HTAN breast atlas"
+            engagement_kind: [method_reuse]
+            data_task: not_stated
+            method_detail: neighborhood analysis approach
+          - span: "HTAN images served as an independent comparison cohort"
+            engagement_kind: [data_reuse, comparison]
+            data_task: validation
+            method_detail: not_stated
+  data_acquisition:
+    description: >
+      A statement that this document's authors obtained data belonging to the
+      consortium named in the preamble: which accession or dataset, from which
+      repository, by which route. Only acquisitions of that consortium's data.
+    attributes:
+      accession:    {type: string}
+      repository:   {vocabulary: repository}
+      access_route: {vocabulary: access_route}
+    examples:
+      - text: "Imaging data were obtained from the HTAN data portal, and single-cell counts from Synapse (syn24827084)."
+        extractions:
+          - span: "Imaging data were obtained from the HTAN data portal"
+            accession: not_stated
+            repository: portal
+            access_route: portal
+          - span: "single-cell counts from Synapse (syn24827084)"
+            accession: syn24827084
+            repository: Synapse
+            access_route: direct_download

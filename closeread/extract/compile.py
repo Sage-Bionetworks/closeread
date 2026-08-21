@@ -45,14 +45,19 @@ class CompiledPass:
     sections: list[str] | None
     window_chars: int
     classes: dict[str, ClassDef]
-    # "full_text" (default) or "abstract" (§4.2 abstract pass reads abstracts,
-    # one document per request, never packed — §4.2.5).
+    # "full_text" (default), "abstract" (§4.2.5: one document per request,
+    # never packed), or "anchors" (§4.2.3: proximity windows, provenance pass).
     text_source: str = "full_text"
+    anchor_radius: int = 1500
 
     # ---- prompt ----------------------------------------------------------
-    def prompt(self, document_text: str) -> str:
+    def prompt(self, document_text: str, preamble: str | None = None) -> str:
         lines: list[str] = [
             "You are extracting structured, evidence-linked facts from the text of a scientific publication.",
+        ]
+        if preamble:
+            lines += ["", preamble]
+        lines += [
             "",
             "Extract facts for the classes defined below. Return JSON only, matching the response schema.",
             "",
@@ -211,4 +216,5 @@ def load_pass(name_or_path: str | Path) -> CompiledPass:
         window_chars=int(raw.get("window_chars", 30_000)),
         classes=classes,
         text_source=raw.get("text_source", "full_text"),
+        anchor_radius=int(raw.get("anchor_radius", 1500)),
     )

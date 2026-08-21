@@ -46,15 +46,25 @@ def request_key(doc_id: str, window_index: int, window_start: int) -> str:
 def build_requests(
     compiled: CompiledPass,
     docs: dict[str, ParsedDocument],
+    windows_by_doc: dict[str, list[tuple[int, int]]] | None = None,
+    preamble: str | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, dict[str, Any]]]:
-    """One request per (document, window). Returns (request lines, key index)."""
+    """One request per (document, window). Returns (request lines, key index).
+
+    windows_by_doc overrides default whole-document windowing (anchor mode)."""
+    from closeread.parse.chunking import Window
+
     config = generation_config(compiled)
     lines: list[dict[str, Any]] = []
     index: dict[str, dict[str, Any]] = {}
     for doc_id, parsed in docs.items():
-        for window in make_windows(len(parsed.text), compiled.window_chars):
+        if windows_by_doc is not None:
+            windows = [Window(i, s, e) for i, (s, e) in enumerate(windows_by_doc.get(doc_id, []))]
+        else:
+            windows = make_windows(len(parsed.text), compiled.window_chars)
+        for window in windows:
             key = request_key(doc_id, window.index, window.start)
-            prompt = compiled.prompt(window.slice(parsed.text))
+            prompt = compiled.prompt(window.slice(parsed.text), preamble=preamble)
             lines.append(
                 {
                     "key": key,

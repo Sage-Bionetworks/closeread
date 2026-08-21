@@ -1,0 +1,11 @@
+vocabulary: data_task
+version: 1.0.0
+values:
+  - validation
+  - integration
+  - meta_analysis
+  - benchmark_input
+  - training_data
+  - new_hypothesis
+  - atlas_extension
+  - not_stated

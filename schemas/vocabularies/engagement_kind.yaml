@@ -1,0 +1,11 @@
+# Kind and purpose are separate axes (§3.5). `reproduce` is not a value: it
+# measured 5 percent precision in the prototype (§7.3).
+vocabulary: engagement_kind
+version: 1.0.0
+values:
+  - background_citation
+  - data_reuse
+  - method_reuse
+  - tool_reuse
+  - comparison
+  - new_data_alongside
