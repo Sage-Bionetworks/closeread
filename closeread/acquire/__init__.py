@@ -8,7 +8,7 @@ from pathlib import Path
 
 from closeread.acquire import openalex, pmc
 from closeread.config import CommunityConfig, Settings
-from closeread.jsonl import write_jsonl
+from closeread.jsonl import read_jsonl, write_jsonl
 from closeread.models import Document
 
 
@@ -123,3 +123,127 @@ def acquire_corpus(config: CommunityConfig, settings: Settings, log=print) -> li
 
 def parsed_dir(settings: Settings, community: str) -> Path:
     return settings.community_dir(community) / "parsed"
+
+
+CITING_WORK_FIELDS = (
+    "id,doi,title,publication_year,publication_date,type,ids,"
+    "primary_location,authorships,abstract_inverted_index,referenced_works"
+)
+
+# Read-only reference cache of previously fetched citing JATS (999 MB in the
+# prototype repo). Hits are copied in; misses fall through to S3.
+REFERENCE_CITING_CACHE = Path(
+    "/Users/ataylor/Documents/projects/htan2/htan-pubs-fulltext/citing_jats"
+)
+
+
+def acquire_citing(config: CommunityConfig, settings: Settings, log=print) -> None:
+    """Citing-side acquisition (§5.1 steps 2-5, §5.2, §5.2.1). Tiers:
+    A merged preprint (no fetch), B PMC, C bioRxiv/medRxiv requester-pays,
+    D abstract only."""
+    from closeread.acquire.dedup import classify_author_overlap, dedup_preprints
+    from closeread.models import CitationEdge, make_edge_id
+
+    out_dir = settings.community_dir(config.community)
+    existing = list(read_jsonl(out_dir / "documents.jsonl"))
+    corpus_rows = [d for d in existing if d["doc_type"] == "corpus"]
+    corpus_ids = {d["doc_id"] for d in corpus_rows}
+    corpus_author_ids = {a for d in corpus_rows for a in d.get("author_ids") or []}
+    snapshot_date = _today()
+
+    # 1. Enumerate citing works, deduplicated by Work ID; capture edges from
+    #    referenced_works ∩ corpus.
+    citing: dict[str, dict] = {}
+    edges: dict[str, CitationEdge] = {}
+    id_list = sorted(corpus_ids)
+    for i in range(0, len(id_list), 50):
+        batch = id_list[i : i + 50]
+        for work in openalex.works_by_filter(
+            "cites:" + "|".join(batch), settings.openalex_mailto, select=CITING_WORK_FIELDS
+        ):
+            s = openalex.work_summary(work)
+            refs = {openalex.short_id(r) for r in work.get("referenced_works") or []}
+            cited = refs & corpus_ids
+            for cited_id in cited:
+                eid = make_edge_id(s["doc_id"], cited_id)
+                edges[eid] = CitationEdge(edge_id=eid, citing_doc_id=s["doc_id"], cited_doc_id=cited_id)
+            if s["doc_id"] not in citing:
+                s["work_type"] = work.get("type")
+                citing[s["doc_id"]] = s
+        log(f"citing enumeration: {len(citing)} works, {len(edges)} edges after {min(i + 50, len(id_list))}/{len(id_list)} corpus ids")
+
+    write_jsonl(out_dir / "citation_edges.jsonl", edges.values())
+
+    # 2. Preprint/published dedup (§5.2).
+    works = list(citing.values())
+    n_before = len(works)
+    kept, n_merged = dedup_preprints(works)
+    log(f"preprint dedup: {n_before} -> {len(kept)} citing works ({n_merged} pairs merged)")
+
+    # 3. Resolve PMCIDs: OpenAlex does not return them.
+    pmcid_map = pmc.pmids_to_pmcids(
+        [s["pmid"] for s in kept if s.get("pmid") and not s.get("pmcid")],
+        settings.openalex_mailto,
+        log=log,
+    )
+    for s in kept:
+        if not s.get("pmcid") and s.get("pmid"):
+            s["pmcid"] = pmcid_map.get(s["pmid"])
+    log(f"pmcids resolved: {sum(1 for s in kept if s.get('pmcid'))} of {len(kept)}")
+
+    # 4. Tiers B/C/D + author overlap.
+    fulltext_dir = out_dir / "raw" / "fulltext"
+    s3 = pmc.unsigned_client()
+    ref_cache = REFERENCE_CITING_CACHE if REFERENCE_CITING_CACHE.exists() else None
+    documents: list[Document] = []
+    n_full = n_cache = bytes_fetched = 0
+    tier_c_pending = 0
+    for s in kept:
+        if s["doc_id"] in corpus_ids:
+            continue  # the citing work is itself a corpus document; already recorded
+        overlap = classify_author_overlap(s, corpus_ids, corpus_author_ids)
+        oa_status = "abstract_only" if s["abstract"] else "unavailable"
+        source_version = None
+        if s["pmcid"]:
+            fetched = pmc.fetch_jats(s3, s["pmcid"], fulltext_dir, reference_cache=ref_cache)
+            if fetched:
+                path, source_version = fetched
+                oa_status = "fulltext"
+                n_full += 1
+        elif s["doi"] and s["doi"].startswith("10.1101/"):
+            # tier C: bioRxiv/medRxiv requester-pays; needs the AWS profile.
+            oa_status = "preprint_requester_pays_pending"
+            tier_c_pending += 1
+        documents.append(
+            Document(
+                doc_id=s["doc_id"],
+                doc_type="citing",
+                community=config.community,
+                pmid=s["pmid"],
+                pmcid=s["pmcid"],
+                doi=s["doi"],
+                title=s["title"],
+                pub_date=s["pub_date"],
+                venue=s["venue"],
+                oa_status=oa_status,
+                source_version=source_version,
+                merged_from=s.get("merged_from") or [],
+                snapshot_date=snapshot_date,
+                author_ids=s.get("author_ids") or [],
+                institution_ids=s.get("institution_ids") or [],
+                abstract=s["abstract"],
+                is_preprint=s.get("work_type") == "preprint",
+                **overlap,
+            )
+        )
+
+    all_rows = corpus_rows + [json_ready for json_ready in (d.model_dump() for d in documents)]
+    write_jsonl(out_dir / "documents.jsonl", all_rows)
+    n_abs = sum(1 for d in documents if d.abstract)
+    log(
+        f"citing documents: {len(documents)}  fulltext: {n_full}  with abstract: {n_abs}  "
+        f"tier-C pending (needs aws sso login): {tier_c_pending}  merged pairs: {n_merged}"
+    )
+    from collections import Counter
+
+    log(f"author_overlap: {Counter(d.author_overlap.value for d in documents if d.author_overlap)}")

@@ -50,7 +50,9 @@ def _client(mailto: str) -> httpx.Client:
     return httpx.Client(headers={"User-Agent": f"closeread (mailto:{mailto})"})
 
 
-def works_by_filter(filter_expr: str, mailto: str, per_page: int = 200) -> Iterator[dict[str, Any]]:
+def works_by_filter(
+    filter_expr: str, mailto: str, per_page: int = 200, select: str = WORK_FIELDS
+) -> Iterator[dict[str, Any]]:
     """Iterate all works matching an OpenAlex filter, cursor-paginated."""
     cursor = "*"
     with _client(mailto) as client:
@@ -62,7 +64,7 @@ def works_by_filter(filter_expr: str, mailto: str, per_page: int = 200) -> Itera
                     "filter": filter_expr,
                     "per-page": per_page,
                     "cursor": cursor,
-                    "select": WORK_FIELDS,
+                    "select": select,
                     "mailto": mailto,
                 },
             )

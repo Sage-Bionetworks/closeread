@@ -14,11 +14,15 @@ def main() -> None:
 
 @main.command()
 @click.option("--community", required=True)
-def acquire(community: str) -> None:
-    """Stage 1: OpenAlex metadata, then full text (tier B: PMC)."""
-    from closeread.acquire import acquire_corpus
+@click.option("--citing", is_flag=True, help="Acquire the citing corpus (tiers A-D) instead of the seed corpus.")
+def acquire(community: str, citing: bool) -> None:
+    """Stage 1: OpenAlex metadata, then full text."""
+    from closeread.acquire import acquire_citing, acquire_corpus
 
-    acquire_corpus(load_community(community), Settings())
+    if citing:
+        acquire_citing(load_community(community), Settings())
+    else:
+        acquire_corpus(load_community(community), Settings())
 
 
 @main.command()
@@ -89,11 +93,22 @@ def normalise(value_set: str, community: str) -> None:
 
 @main.command()
 @click.option("--run", "run_id", required=True)
-def judge(run_id: str) -> None:
-    """Stage 7: adjudicate records."""
+@click.option("--model", default=None, help="Judge model; must differ from the extractor.")
+def judge(run_id: str, model: str | None) -> None:
+    """Stage 7: adjudicate records (submits a canary-gated batch job)."""
     from closeread.judge import run_judge
 
-    run_judge(run_id, Settings())
+    run_judge(run_id, Settings(), judge_model=model)
+
+
+@main.command("judge-collect")
+@click.option("--run", "run_id", required=True)
+@click.option("--job-tag", required=True)
+def judge_collect(run_id: str, job_tag: str) -> None:
+    """Harvest judge verdicts and rebuild silver."""
+    from closeread.judge import collect_judge
+
+    collect_judge(run_id, job_tag, Settings())
 
 
 @main.command()

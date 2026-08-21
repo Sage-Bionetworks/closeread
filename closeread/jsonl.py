@@ -11,9 +11,12 @@ from pydantic import BaseModel
 
 
 def write_jsonl(path: Path, rows: Iterable[Any]) -> int:
+    """Atomic write: temp file + rename, so a concurrent reader never sees a
+    partial file."""
     path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + ".tmp")
     n = 0
-    with open(path, "w") as fh:
+    with open(tmp, "w") as fh:
         for row in rows:
             if isinstance(row, BaseModel):
                 fh.write(row.model_dump_json())
@@ -21,6 +24,7 @@ def write_jsonl(path: Path, rows: Iterable[Any]) -> int:
                 fh.write(json.dumps(row, ensure_ascii=False, default=str))
             fh.write("\n")
             n += 1
+    tmp.replace(path)
     return n
 
 

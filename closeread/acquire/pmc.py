@@ -1,18 +1,67 @@
 """Tier B full-text acquisition: PubMed Central open-access bucket. Spec §5.1.
 
 Bucket layout: s3://pmc-oa-opendata/PMC<id>.<v>/PMC<id>.<v>.xml, unsigned.
+OpenAlex does not return PMCIDs, so they are resolved from PMIDs via the NCBI
+ID converter.
 """
 
 from __future__ import annotations
 
 import re
+import time
+from collections.abc import Iterable
 from pathlib import Path
 
 import boto3
+import httpx
 from botocore import UNSIGNED
 from botocore.config import Config
 
 PMC_BUCKET = "pmc-oa-opendata"
+IDCONV_URL = "https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/"
+
+
+def pmids_to_pmcids(pmids: Iterable[str], mailto: str, log=print) -> dict[str, str]:
+    """PMID -> PMCID via the NCBI ID converter, 200 ids per request."""
+    pmids = [p for p in pmids if p]
+    out: dict[str, str] = {}
+    with httpx.Client(headers={"User-Agent": f"closeread (mailto:{mailto})"}) as client:
+        for i in range(0, len(pmids), 200):
+            batch = pmids[i : i + 200]
+            delay = 1.0
+            for attempt in range(5):
+                try:
+                    resp = client.get(
+                        IDCONV_URL,
+                        params={
+                            "ids": ",".join(batch),
+                            "format": "json",
+                            "tool": "closeread",
+                            "email": mailto,
+                        },
+                        timeout=60,
+                    )
+                except httpx.TransportError:
+                    if attempt == 4:
+                        raise
+                    time.sleep(delay)
+                    delay *= 2
+                    continue
+                if resp.status_code in (429, 500, 502, 503, 504):
+                    if attempt == 4:
+                        resp.raise_for_status()
+                    time.sleep(delay)
+                    delay *= 2
+                    continue
+                resp.raise_for_status()
+                for rec in resp.json().get("records", []):
+                    if rec.get("pmcid") and rec.get("pmid"):
+                        out[str(rec["pmid"])] = rec["pmcid"]
+                break
+            time.sleep(0.34)  # NCBI rate limit: 3 req/s
+            if (i // 200) % 10 == 9:
+                log(f"idconv: {min(i + 200, len(pmids))}/{len(pmids)} pmids, {len(out)} pmcids")
+    return out
 
 
 def unsigned_client():
@@ -31,19 +80,35 @@ def latest_version(s3, pmcid: str) -> int | None:
     return max(versions) if versions else None
 
 
-def fetch_jats(s3, pmcid: str, dest_dir: Path) -> tuple[Path, str] | None:
+def _versioned(dir_: Path, pmcid: str) -> list[Path]:
+    return sorted(
+        (p for p in dir_.glob(f"{pmcid}.*.xml") if p.stem.split(".")[-1].isdigit()),
+        key=lambda p: int(p.stem.split(".")[-1]),
+    )
+
+
+def fetch_jats(
+    s3, pmcid: str, dest_dir: Path, reference_cache: Path | None = None
+) -> tuple[Path, str] | None:
     """Download the latest JATS XML for a PMCID. Returns (path, version) or None.
 
     Idempotent: an already-downloaded file is returned without refetching.
+    reference_cache is a read-only directory of previously fetched
+    PMC<id>.<v>.xml files; a hit is copied in instead of refetched.
     """
     dest_dir.mkdir(parents=True, exist_ok=True)
-    cached = sorted(
-        dest_dir.glob(f"{pmcid}.*.xml"),
-        key=lambda p: int(p.stem.split(".")[-1]),
-    )
+    cached = _versioned(dest_dir, pmcid)
     if cached:
         path = cached[-1]
         return path, path.stem.split(".")[-1]
+
+    if reference_cache is not None:
+        ref_hits = _versioned(reference_cache, pmcid)
+        if ref_hits:
+            src = ref_hits[-1]
+            path = dest_dir / src.name
+            path.write_bytes(src.read_bytes())
+            return path, src.stem.split(".")[-1]
 
     version = latest_version(s3, pmcid)
     if version is None:
