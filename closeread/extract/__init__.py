@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import sys
 
 from closeread.config import CommunityConfig, Settings
@@ -68,14 +69,29 @@ def _anchor_windows(
     corpus_pmids = {d["pmid"] for d in corpus if d.get("pmid")}
     corpus_doc_ids = {d["doc_id"] for d in corpus}
 
-    # Accessions the corpus itself mentions: generic accessions anchor only
-    # when they appear in corpus text.
+    # Generic accessions anchor only when the corpus RELEASED them (§3.2: the
+    # verb decides; a corpus paper merely mentioning GSE94820 does not make it
+    # consortium data). Falls back to corpus candidate values when no
+    # availability run exists yet.
     corpus_accessions: set[str] = set()
-    cand_path = out_dir / "candidates.jsonl"
-    if cand_path.exists():
-        for c in read_jsonl(cand_path):
-            if c["doc_id"] in corpus_doc_ids:
-                corpus_accessions.add(c["value"])
+    for path in sorted((out_dir / "bronze").glob("records_*availability*.jsonl")):
+        for r in read_jsonl(path):
+            if (
+                r["doc_id"] in corpus_doc_ids
+                and r["extraction_class"] == "data_availability"
+                and r["attributes"].get("direction") == "released"
+            ):
+                acc = r["attributes"].get("accession")
+                if acc and acc != "not_stated":
+                    for token in re.split(r"[,;\s]+", str(acc)):
+                        if len(token) > 3:
+                            corpus_accessions.add(token.strip("()."))
+    if not corpus_accessions:
+        cand_path = out_dir / "candidates.jsonl"
+        if cand_path.exists():
+            for c in read_jsonl(cand_path):
+                if c["doc_id"] in corpus_doc_ids:
+                    corpus_accessions.add(c["value"])
 
     docs_meta = {
         d["doc_id"]: d
@@ -169,7 +185,10 @@ def run_extract(
         log("WARNING: canary skipped by flag")
         canary_passed = False
     else:
-        canary_passed = run_canary(lines, key_index, docs, compiled, model, settings, config.community, log=log)
+        canary_passed = run_canary(
+            lines, key_index, docs, compiled, model, settings, config.community, log=log,
+            identity_strings=tuple(config.identity_strings) if compiled.text_source == "anchors" else (),
+        )
         if not canary_passed:
             log("canary FAILED: fan-out not submitted (rule 6.9)")
             sys.exit(1)

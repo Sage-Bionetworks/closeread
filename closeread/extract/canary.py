@@ -29,9 +29,20 @@ def pick_canary_lines(
     key_index: dict[str, dict[str, Any]],
     docs: dict[str, ParsedDocument],
     n: int = 2,
+    identity_strings: tuple[str, ...] = (),
 ) -> list[dict[str, Any]]:
-    """Prefer windows that overlap an availability section, so the canary's
-    quote-alignment assertion has something to align."""
+    """Prefer windows likely to yield extractions, so the canary's
+    quote-alignment assertion has something to align: windows containing an
+    identity string (anchor passes), then windows overlapping an availability
+    section."""
+
+    def window_text(key: str) -> str:
+        info = key_index[key]
+        return docs[info["doc_id"]].text[info["window_start"] : info["window_end"]]
+
+    def has_identity(key: str) -> bool:
+        text = window_text(key)
+        return any(s in text for s in identity_strings)
 
     def has_target(key: str) -> bool:
         info = key_index[key]
@@ -43,7 +54,10 @@ def pick_canary_lines(
             for s in parsed.sections.spans
         )
 
-    preferred = [l for l in lines if has_target(l["key"])]
+    preferred = []
+    if identity_strings:
+        preferred = [l for l in lines if has_identity(l["key"])]
+    preferred += [l for l in lines if has_target(l["key"])]
     chosen: list[dict[str, Any]] = []
     seen_docs: set[str] = set()
     for line in preferred + lines:
@@ -66,10 +80,11 @@ def run_canary(
     settings: Settings,
     community: str,
     log=print,
+    identity_strings: tuple[str, ...] = (),
 ) -> bool:
     from google.genai import types
 
-    canary_lines = pick_canary_lines(lines, key_index, docs)
+    canary_lines = pick_canary_lines(lines, key_index, docs, identity_strings=identity_strings)
     if len(canary_lines) < 2:
         log("canary: fewer than 2 requests available")
         return False
