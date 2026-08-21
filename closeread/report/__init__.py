@@ -25,6 +25,19 @@ def run_report(config: CommunityConfig, settings: Settings, run_ids: list[str], 
         manifest[entry["figure"]] = entry
         log(f"rendered {entry['figure']}: {entry['n_records']} records, denominators {entry['denominators']}")
 
+    gold_dir = settings.community_dir(config.community) / "gold"
+    from closeread.report.corpus_figures import render_f1, render_f2, render_f3
+
+    for cls_csv, renderer in (
+        ("object_format.csv", render_f1),
+        ("cell_typing.csv", render_f2),
+        ("tme_algorithm.csv", render_f3),
+    ):
+        if (gold_dir / cls_csv).exists():
+            entry = renderer(gold_dir, figures_dir, run_ids)
+            manifest[entry["figure"]] = entry
+            log(f"rendered {entry['figure']}: {entry['n_records']} records")
+
     entry = render_f8(settings, config.community, run_ids, figures_dir)
     manifest[entry["figure"]] = entry
     log(f"rendered {entry['figure']}: {entry['n_records']} records")

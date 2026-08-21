@@ -19,7 +19,7 @@ from closeread.jsonl import read_jsonl, write_jsonl
 
 # value_set -> [(extraction_class, attribute)]
 VALUE_SETS: dict[str, list[tuple[str, str]]] = {
-    "assay_name": [("assay_platform", "assay_name")],
+    "assay_name": [("assay_platform", "assay_name"), ("object_format", "assay_name")],
     "platform": [("assay_platform", "platform")],
     "vendor": [("assay_platform", "vendor")],
     "format": [("object_format", "format")],
