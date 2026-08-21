@@ -116,30 +116,47 @@ def generate_mapping(
 
     client = _client()
     version = dt.date.today().isoformat()
+    chunks = [todo[i : i + BATCH_SIZE] for i in range(0, len(todo), BATCH_SIZE)]
+
+    def _map_chunk(chunk: list[str]) -> dict[str, str]:
+        import time as _time
+
+        delay = 5.0
+        for attempt in range(5):
+            try:
+                resp = client.models.generate_content(
+                    model=model,
+                    contents=_prompt(value_set, chunk),
+                    config={
+                        "response_mime_type": "application/json",
+                        "response_schema": _RESPONSE_SCHEMA,
+                        "temperature": 0,
+                    },
+                )
+                payload = json.loads(resp.text)
+                return {m["surface_form"]: m["canonical_form"] for m in payload["mappings"]}
+            except Exception:  # noqa: BLE001 — 429s and transient parse failures
+                if attempt == 4:
+                    return {}
+                _time.sleep(delay)
+                delay *= 2
+        return {}
+
+    from concurrent.futures import ThreadPoolExecutor
+
     new_rows: list[dict[str, Any]] = []
-    for i in range(0, len(todo), BATCH_SIZE):
-        chunk = todo[i : i + BATCH_SIZE]
-        resp = client.models.generate_content(
-            model=model,
-            contents=_prompt(value_set, chunk),
-            config={
-                "response_mime_type": "application/json",
-                "response_schema": _RESPONSE_SCHEMA,
-                "temperature": 0,
-            },
-        )
-        payload = json.loads(resp.text)
-        got = {m["surface_form"]: m["canonical_form"] for m in payload["mappings"]}
-        for v in chunk:
-            canonical = got.get(v, v)  # unanswered forms map to themselves
-            new_rows.append(
-                {
-                    "value_set": value_set,
-                    "surface_form": v,
-                    "canonical_form": canonical,
-                    "mapping_version": version,
-                }
-            )
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        for chunk, got in zip(chunks, pool.map(_map_chunk, chunks)):
+            for v in chunk:
+                canonical = got.get(v, v)  # unanswered forms map to themselves
+                new_rows.append(
+                    {
+                        "value_set": value_set,
+                        "surface_form": v,
+                        "canonical_form": canonical,
+                        "mapping_version": version,
+                    }
+                )
     path = vocab_map_path(settings, community)
     prior = list(read_jsonl(path)) if path.exists() else []
     write_jsonl(path, prior + new_rows)
