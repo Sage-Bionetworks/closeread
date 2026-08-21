@@ -18,14 +18,16 @@ from botocore import UNSIGNED
 from botocore.config import Config
 
 PMC_BUCKET = "pmc-oa-opendata"
-IDCONV_URL = "https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/"
+IDCONV_URL = "https://pmc.ncbi.nlm.nih.gov/tools/idconv/api/v1/articles/"
 
 
 def pmids_to_pmcids(pmids: Iterable[str], mailto: str, log=print) -> dict[str, str]:
     """PMID -> PMCID via the NCBI ID converter, 200 ids per request."""
     pmids = [p for p in pmids if p]
     out: dict[str, str] = {}
-    with httpx.Client(headers={"User-Agent": f"closeread (mailto:{mailto})"}) as client:
+    with httpx.Client(
+        headers={"User-Agent": f"closeread (mailto:{mailto})"}, follow_redirects=True
+    ) as client:
         for i in range(0, len(pmids), 200):
             batch = pmids[i : i + 200]
             delay = 1.0
