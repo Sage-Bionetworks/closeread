@@ -117,6 +117,7 @@ def run_extract(
     model_override: str | None = None,
     skip_canary: bool = False,
     doc_type: str = "corpus",
+    sample: int | None = None,
     log=print,
 ) -> dict | None:
     compiled = load_pass(pass_name)
@@ -142,6 +143,18 @@ def run_extract(
     if not docs:
         log("no parsed documents found; run acquire and parse first")
         sys.exit(1)
+
+    if sample is not None and sample < len(docs):
+        # Deterministic sample (§14.2): seeded by community+pass so the
+        # strong- and small-model runs cover the same documents.
+        import random
+
+        rng = random.Random(f"{config.community}_{pass_name}_sample_{sample}")
+        chosen = set(rng.sample(sorted(docs), sample))
+        docs = {k: v for k, v in docs.items() if k in chosen}
+        if windows_by_doc is not None:
+            windows_by_doc = {k: v for k, v in windows_by_doc.items() if k in chosen}
+        log(f"sampled {len(docs)} documents (seeded, reproducible)")
 
     lines, key_index = batch_mod.build_requests(compiled, docs, windows_by_doc, preamble)
     est = batch_mod.estimate(lines, model)

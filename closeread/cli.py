@@ -48,8 +48,13 @@ def candidates(community: str) -> None:
 @click.option("--pass", "pass_name", required=True)
 @click.option("--dry-run", is_flag=True, help="Print request count and cost estimate; submit nothing.")
 @click.option("--model", default=None, help="Override the pass model.")
+@click.option("--doc-type", default="corpus", type=click.Choice(["corpus", "citing"]))
+@click.option("--sample", default=None, type=int, help="Random document sample of this size (seeded, reproducible).")
 @click.option("--skip-canary", is_flag=True, hidden=True)
-def extract(community: str, pass_name: str, dry_run: bool, model: str | None, skip_canary: bool) -> None:
+def extract(
+    community: str, pass_name: str, dry_run: bool, model: str | None,
+    doc_type: str, sample: int | None, skip_canary: bool,
+) -> None:
     """Stage 4: submit one batch job for one pass. Canary gates the fan-out."""
     from closeread.extract import run_extract
 
@@ -60,6 +65,8 @@ def extract(community: str, pass_name: str, dry_run: bool, model: str | None, sk
         dry_run=dry_run,
         model_override=model,
         skip_canary=skip_canary,
+        doc_type=doc_type,
+        sample=sample,
     )
 
 
