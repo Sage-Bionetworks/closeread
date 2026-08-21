@@ -63,11 +63,13 @@ coh_19 = yr(s1b, "B", "cohort|2019"); coh_25 = yr(s1b, "B", "cohort|2025")
 md_25 = yr(s1b, "B", "method_development|2025")
 
 pap_mi = get(s1c, panel="A", category="multiplex_imaging")
-pap_em = get(s1c, panel="A", category="electron_microscopy")
-dep_em = get(s1c, panel="B", category="electron_microscopy")
+pap_bd = get(s1c, panel="A", category="targeted_dna_seq")
 dep_st = get(s1c, panel="B", category="spatial_transcriptomics")
 dep_mi = get(s1c, panel="B", category="multiplex_imaging")
-portal_total = int(dep_em["denominator_documents"])
+dep_bd = get(s1c, panel="B", category="targeted_dna_seq")
+pap_st = get(s1c, panel="A", category="spatial_transcriptomics")
+portal_total = int(dep_mi["denominator_documents"])
+atl = {r["population"]: r for r in s1c if r["panel"] == "C"}
 
 mi2 = get(s2, panel="A", category="multiplex_imaging")
 st2 = get(s2, panel="A", category="spatial_transcriptomics")
@@ -157,26 +159,38 @@ spatial transcriptomics; by 2025 those are
 
 ---
 
-## Slide 3 — What gets written about is not what gets deposited
+## Slide 3 — What gets written about is not what got collected
 `s1c_papers_vs_deposits.png`
 
-**Line to open with:** the modality that dominates HTAN's papers is not the
-modality that dominates HTAN's disk. Multiplex imaging leads the literature
-({pap_mi['n_documents']} papers) but is {int(dep_mi['n_documents']):,} files;
-spatial transcriptomics is {int(dep_st['n_documents']):,} files. And electron
-microscopy — {int(dep_em['n_documents']):,} files,
-{pct(n(dep_em), portal_total)} of the entire portal, from a single atlas — is
-named in {pap_em['n_documents']} papers.
+**Line to open with:** the spatial modalities are the most written-about and the
+least broadly collected. Multiplex imaging leads the literature
+({pap_mi['n_documents']} papers) on {int(dep_mi['n_documents']):,} patients;
+spatial transcriptomics is {pap_st['n_documents']} papers on
+{int(dep_st['n_documents']):,} patients. Bulk DNA is the reverse —
+{pap_bd['n_documents']} papers on {int(dep_bd['n_documents']):,} patients.
 
-- Left panel counts **papers**, right panel counts **files**. That is the point,
-  and it must be said aloud: a file count is not an effort count, and one
-  imaging study can ship tens of thousands of tiles.
-- Source: HTAN Data Portal database `htan_2026_922`, pulled via the `htan` CLI.
-  The crosswalk from the portal's assay vocabulary to the extraction's
-  `assay_type` vocabulary is in the script; every unmapped portal assay is
-  listed in the backing CSV rather than dropped.
+- **Count patients, not files.** Files answer a storage question, not a coverage
+  one: electron microscopy is 110,398 files from 15 patients, and ExSEQ is
+  21,156 files from 9. Patients are distinct demographics records on released
+  files — {portal_total:,} of 2,917 HTAN participants have at least one.
+- Panel C says the same thing at centre level, and harder. OHSU is
+  {atl['HTAN OHSU']['n_documents']} papers on
+  {atl['HTAN OHSU']['denominator_documents']} patients; Duke is
+  {atl['HTAN Duke']['n_documents']} papers on
+  {atl['HTAN Duke']['denominator_documents']}. HTAPP has
+  {atl['HTAN HTAPP']['denominator_documents']} patients of released data and no
+  paper in the corpus at all; three more centres publish (MD Anderson 10, Yale
+  9, UCSF 5) with no released atlas to point at.
+- Source: HTAN Data Portal database `htan_2026_922`, pulled via the `htan` CLI
+  and saved to `out/dcc/`. Both crosswalks — portal assay → `assay_type`, and
+  corpus centre → atlas — are documented in the script, with unmapped values in
+  the backing CSV.
+- **Say out loud:** a centre that publishes early on few patients is not doing
+  worse work than one that deposits many. This is a decoupling, not a league
+  table.
 - **Why it matters for this audience:** if you plan reuse by reading the
-  literature, you will mis-estimate what is actually available to download.
+  literature, you will mis-estimate both what exists and how many patients it
+  covers.
 
 ---
 

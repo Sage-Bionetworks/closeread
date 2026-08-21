@@ -99,17 +99,13 @@ def render_report_md(
         a(f"- Judge precision is NOT yet measured against human labels: {n_labels} of the required 150 labels exist (§11.3 unmet).")
     if low_attrs:
         a(f"- Attributes populated below 50 percent: " + "; ".join(sorted(set(low_attrs))[:12]) + ".")
-    if (out_dir / "model_gap_500_sample.json").exists():
+    if (out_dir / "small_model_citing_judged_sample.json").exists():
         a(
-            "- The citing full-text passes were deliberately left on the small model for this "
-            "pass. The 500-document sample (methods) measured both directions of the gap: "
-            "record-level, the small model recovers 42 to 62 percent of strong-model spans "
-            "(citing record counts are floors); document-level, it detects 96 to 100 percent "
-            "of documents the strong model flags while flagging 1.3 to 2.3 times more "
-            "(citing document counts may be inflated). Document-level figures are usable; "
-            "within-document detail is not. Escalation (about 326 USD) is warranted only if "
-            "per-record citing detail becomes load-bearing; a judged sample of small-model "
-            "citing records is the cheaper check on over-flagging."
+            "- All passes in this report ran on the strong model. Small-model runs exist for "
+            "the corpus (union, per design) and for earlier citing extractions; the citing "
+            "small-model runs were superseded after a judged 500-document sample measured "
+            "record-level false-positive rates of 14 to 38 percent per class, and are "
+            "retained on disk but excluded from this report."
         )
     a("")
     a("## 6. Methods")

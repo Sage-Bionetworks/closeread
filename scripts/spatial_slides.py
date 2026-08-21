@@ -119,20 +119,41 @@ PORTAL_TO_ASSAY_TYPE = {
 }
 
 
-def portal_files_by_assay_type() -> tuple[dict[str, int], dict[str, int], int]:
-    """(files per closeread assay_type, unmapped portal assays, total files)."""
-    mapped: dict[str, int] = {}
-    unmapped: dict[str, int] = {}
-    total = 0
-    with open(DCC / "portal_assay_files.csv") as fh:
-        for row in csv.DictReader(fh):
-            n_files = int(row["files"])
-            total += n_files
-            at = PORTAL_TO_ASSAY_TYPE.get(row["assayName"], "__missing__")
-            if at is None or at == "__missing__":
-                unmapped[row["assayName"]] = n_files
-            else:
-                mapped[at] = mapped.get(at, 0) + n_files
+# Corpus centre (documents.group_key) -> portal atlas_name. Also a judgement
+# call, also auditable: several centres publish under a name the portal does
+# not carry as a released atlas, and those are reported, not dropped.
+CENTRE_TO_ATLAS = {
+    "HMS (PATCH)": "HTAN HMS", "OHSU (Metastatic)": "HTAN OHSU",
+    "OHSU (Pancreatic)": "HTAN OHSU", "CHOP (Pediatric)": "HTAN CHOP",
+    "Duke (Breast PCA)": "HTAN Duke", "Vanderbilt (CRC)": "HTAN Vanderbilt",
+    "Vanderbilt (CRC 3D)": "HTAN Vanderbilt", "Stanford (FAP)": "HTAN Stanford",
+    "WashU": "HTAN WUSTL", "MSK (Metastasis)": "HTAN MSK",
+    "Boston U (Lung PCA)": "HTAN BU", "HMS (DFCI)": "HTAN DFCI",
+    "DFCI DCC": "HTAN DFCI",
+    # publish in the corpus but have no released atlas in the portal
+    "MD Anderson (Gastric)": None, "Yale (Lymphoma)": None, "UCSF (Skin)": None,
+}
+
+
+def _read_dcc(name: str) -> list[dict]:
+    with open(DCC / name) as fh:
+        return list(csv.DictReader(fh))
+
+
+def portal_participants_by_assay_type() -> tuple[dict[str, int], int, int]:
+    """(participants per closeread assay_type, unmapped-group participants,
+    total participants with a released file).
+
+    Participants, not files: a file count is dominated by tiling — electron
+    microscopy is 110,398 files from 15 patients — so files answer a storage
+    question, not a coverage one. Counts come from distinct demographicsIds on
+    released files, so they are set operations per assay group and must never
+    be summed across groups.
+    """
+    mapped = {r["assay_type"]: int(r["participants"])
+              for r in _read_dcc("portal_assaytype_participants.csv")}
+    unmapped = mapped.pop("__unmapped__", 0)
+    total = int(_read_dcc("portal_totals.csv")[0].get("participants_with_files", 0) or 0)
     return mapped, unmapped, total
 
 
@@ -458,83 +479,134 @@ def slide1b(con):
 
 def slide1c(con):
     fig = plt.figure(figsize=(13.33, 7.5))
-    deck(fig, "What gets written about is not what gets deposited",
-         "HTAN's own papers (left) against the HTAN Data Portal's actual holdings (right).")
-    gs = fig.add_gridspec(1, 2, left=0.185, right=0.965, top=0.735, bottom=0.205,
-                          wspace=0.60)
+    deck(fig, "What gets written about is not what got collected",
+         "HTAN's own papers against the HTAN Data Portal's released data, "
+         "counted in patients.")
+    gs = fig.add_gridspec(1, 3, left=0.152, right=0.965, top=0.735, bottom=0.205,
+                          wspace=0.90, width_ratios=[1.0, 1.0, 1.15])
     rows = []
 
-    files_by_type, unmapped, portal_total = portal_files_by_assay_type()
+    parts, unmapped_p, total_p = portal_participants_by_assay_type()
     papers = dict(q(con, """SELECT assay_type, count(DISTINCT doc_id) FROM assay_platform
                             WHERE doc_type = 'corpus'
                               AND assay_type NOT IN ('not_stated', 'other') GROUP BY 1"""))
     paper_den = q(con, "SELECT count(DISTINCT doc_id) FROM assay_platform "
                        "WHERE doc_type = 'corpus'")[0][0]
-    shared = [t for t in files_by_type if t in papers]
-    shared.sort(key=lambda t: -files_by_type[t])
-    shared = shared[:10]
-    lab = {t: NICE.get(t, t.replace("_", " ")) for t in shared}
+    shared = sorted((t for t in parts if t in papers), key=lambda t: -papers[t])[:10]
+    SHORTEN = {"mass_spectrometry_proteomics": "mass spec proteomics",
+               "imaging_mass_cytometry": "imaging mass cytom."}
+    lab = {t: SHORTEN.get(t, NICE.get(t, t.replace("_", " "))) for t in shared}
 
-    axL = fig.add_subplot(gs[0, 0])
-    order = sorted(shared, key=lambda t: -papers.get(t, 0))
-    panel(axL, [lab[t] for t in order], [papers.get(t, 0) for t in order], paper_den,
-          "A — What the papers report",
+    # A -- papers
+    panel(fig.add_subplot(gs[0, 0]), [lab[t] for t in shared],
+          [papers[t] for t in shared], paper_den, "A — Papers",
           f"HTAN papers reporting each modality, of {paper_den} corpus papers with an "
-          f"assay record. Same ten modalities as panel B, ranked by papers.",
-          colour=BLUE, unit="papers", wrap=54)
+          f"assay record.", colour=BLUE, unit="papers", wrap=38)
     rows += [ROW(slide="1c", panel="A", population="HTAN corpus papers", category=t,
-                 n_documents=papers.get(t, 0), denominator_documents=paper_den)
-             for t in order]
+                 n_documents=papers[t], denominator_documents=paper_den,
+                 extra_measure="unit", extra_value="papers") for t in shared]
 
-    axR = fig.add_subplot(gs[0, 1])
-    order_f = sorted(shared, key=lambda t: -files_by_type[t])
-    vals = [files_by_type[t] for t in order_f]
-    y = list(range(len(order_f)))
-    axR.barh(y, vals, color=ORANGE, height=0.66)
-    axR.set_yticks(y)
-    axR.set_yticklabels([lab[t] for t in order_f], fontsize=10, color=INK)
-    axR.invert_yaxis()
+    # B -- patients, same modality order, so the two panels read as one figure
+    axB = fig.add_subplot(gs[0, 1])
+    y = list(range(len(shared)))
+    vals = [parts[t] for t in shared]
+    axB.barh(y, vals, color=ORANGE, height=0.66)
+    axB.set_yticks(y)
+    axB.set_yticklabels([lab[t] for t in shared], fontsize=10, color=INK)
+    axB.invert_yaxis()
     for i, v in enumerate(vals):
-        axR.text(v + max(vals) * 0.02, i, f"{v:,}", va="center", fontsize=9, color=INK)
-    axR.set_xlim(0, max(vals) * 1.30)
-    axR.set_xticks([0, 25000, 50000, 75000, 100000])
-    axR.set_xticklabels(["0", "25k", "50k", "75k", "100k"])
-    axR.set_xlabel(f"files in the portal   (of {portal_total:,} total)", fontsize=9, color=MUTED)
-    axR.spines[["top", "right", "left"]].set_visible(False)
-    axR.tick_params(length=0)
-    axR.grid(axis="x", color=GRID, linewidth=0.7)
-    axR.set_axisbelow(True)
-    em = files_by_type.get("electron_microscopy", 0)
-    titled(axR, "B — What the portal actually holds",
-           f"Files released, HTAN Data Portal database htan_2026_922. "
-           f"Electron microscopy alone is {em:,} files — {100.0 * em / portal_total:.0f}% of "
-           f"the whole portal, from one atlas — and it is named in only "
-           f"{papers.get('electron_microscopy', 0)} papers.", wrap=54)
+        axB.text(v + max(vals) * 0.025, i, f"{v:,}", va="center", fontsize=9, color=INK)
+    axB.set_xlim(0, max(vals) * 1.34)
+    axB.set_xlabel(f"patients   (of {total_p:,} with released data)", fontsize=9, color=MUTED)
+    axB.spines[["top", "right", "left"]].set_visible(False)
+    axB.tick_params(length=0)
+    axB.grid(axis="x", color=GRID, linewidth=0.7)
+    axB.set_axisbelow(True)
+    em_p, em_pap = parts.get("electron_microscopy", 0), papers.get("electron_microscopy", 0)
+    titled(axB, "B — Patients",
+           f"Patients with released data of each modality, portal database "
+           f"htan_2026_922. Same order as panel A. Counted as distinct patients, not "
+           f"files: electron microscopy is 110,398 files from {em_p} patients.", wrap=38)
     rows += [ROW(slide="1c", panel="B", population="HTAN Data Portal", category=t,
-                 n_documents=files_by_type[t], denominator_documents=portal_total,
-                 extra_measure="unit", extra_value="files")
-             for t in order_f]
-    for a, nf in sorted(unmapped.items(), key=lambda kv: -kv[1]):
-        rows.append(ROW(slide="1c", panel="B (unmapped)", population="HTAN Data Portal",
-                        category=a, n_documents=nf, denominator_documents=portal_total,
-                        extra_measure="unit", extra_value="files"))
+                 n_documents=parts[t], denominator_documents=total_p,
+                 extra_measure="unit", extra_value="patients") for t in shared]
 
-    footer(fig, f"{CORPUS_RULE}  {C_PRECISION}  The two panels count different things on "
-                f"purpose: papers on the left, files on the right — a file count is not an "
-                f"effort count, and one imaging study can ship tens of thousands of tiles. "
-                f"The portal's assay vocabulary and the extraction's assay_type vocabulary "
-                f"were authored independently; the crosswalk is in the script and every "
-                f"unmapped portal assay is listed in the backing CSV. Portal snapshot "
-                f"htan_2026_922; corpus snapshot 2026-08-21. Slide 7 carries the full caveats.")
+    # C -- the same decoupling at centre level
+    centre_papers = dict(q(con, """SELECT trim(u), count(DISTINCT d.doc_id)
+                                   FROM documents d, UNNEST(string_split(d.group_key, ';')) t(u)
+                                   WHERE d.doc_type = 'corpus' AND d.group_key IS NOT NULL
+                                   GROUP BY 1"""))
+    atlas_parts = {r["atlas_name"]: int(r["participants"])
+                   for r in _read_dcc("portal_atlas_participants.csv")}
+    by_atlas: dict[str, int] = {}
+    no_atlas = []
+    for centre, n_pap in centre_papers.items():
+        a = CENTRE_TO_ATLAS.get(centre, "__unknown__")
+        if a is None:
+            no_atlas.append((centre, n_pap))
+        elif a != "__unknown__":
+            by_atlas[a] = by_atlas.get(a, 0) + n_pap
+
+    axC = fig.add_subplot(gs[0, 2])
+    # label offsets are staggered by hand where atlases collide near the origin
+    NUDGE = {"HTAN SRRS": (10, -3), "HTAN TNP SARDANA": (10, -13),
+             "HTAN TNP - TMA": (9, 5), "HTAN HTAPP": (9, 4),
+             "HTAN MSK": (9, -10), "HTAN DFCI": (9, -10), "HTAN BU": (9, 5),
+             "HTAN HMS": (9, -11), "HTAN Vanderbilt": (9, 5),
+             "HTAN CHOP": (-9, 6), "HTAN OHSU": (9, -4),
+             "HTAN Stanford": (10, 4), "HTAN WUSTL": (9, 4), "HTAN Duke": (9, 0)}
+    for a, pt in sorted(atlas_parts.items(), key=lambda kv: -kv[1]):
+        pap = by_atlas.get(a, 0)
+        colour = BLUE if pap else MUTED
+        axC.scatter([pap], [pt], s=64, color=colour, zorder=4,
+                    edgecolor="white", linewidth=1.2)
+        dx, dy = NUDGE.get(a, (9, 4))
+        axC.annotate(a.replace("HTAN ", ""), (pap, pt), textcoords="offset points",
+                     xytext=(dx, dy), ha=("left" if dx > 0 else "right"),
+                     fontsize=8.6, color=INK if pap else MUTED, zorder=5)
+        rows.append(ROW(slide="1c", panel="C", population=a, category="atlas",
+                        n_documents=pap, denominator_documents=pt,
+                        extra_measure="patients_with_released_data", extra_value=pt))
+    axC.set_xlim(-2.5, 35)
+    axC.set_ylim(-95, 950)
+    axC.set_yticks([0, 200, 400, 600, 800])
+    axC.set_xlabel("papers from that centre", fontsize=9, color=MUTED)
+    axC.set_ylabel("patients with released data", fontsize=9, color=MUTED)
+    axC.spines[["top", "right"]].set_visible(False)
+    axC.grid(color=GRID, linewidth=0.7)
+    axC.set_axisbelow(True)
+    axC.tick_params(length=0)
+    miss = ", ".join(f"{c.split(' (')[0]} ({n})" for c, n in
+                     sorted(no_atlas, key=lambda kv: -kv[1]))
+    titled(axC, "C — Same at centre level",
+           f"One point per released atlas. Grey = an atlas with no paper in the corpus. "
+           f"Three centres publish but have no released atlas, so they cannot be "
+           f"plotted — {miss} papers. Centre-to-atlas mapping is in the script.",
+           wrap=44)
+
+    footer(fig, f"{CORPUS_RULE}  {C_PRECISION}  Patients are distinct demographics records "
+                f"on released files; {total_p:,} of 2,917 HTAN participants have at least one "
+                f"released file linked this way. Panels A and B count different things on "
+                f"purpose — papers and patients — and a centre that publishes early on few "
+                f"patients is not doing worse work than one that deposits many. The portal's "
+                f"assay vocabulary and the extraction's assay_type vocabulary were authored "
+                f"independently; both crosswalks are in the script and unmapped values are in "
+                f"the backing CSV. Portal snapshot htan_2026_922; corpus snapshot 2026-08-21. "
+                f"Slide 7 carries the full caveats.")
     save(fig, "s1c_papers_vs_deposits", rows, FIELDS, {
         "slide": "1c",
-        "A": {"class": "assay_platform", "denominator": f"{paper_den} corpus papers"},
-        "B": {"source": "HTAN Data Portal ClickHouse, database htan_2026_922, via htan CLI",
-              "denominator": f"{portal_total:,} released files",
-              "crosswalk": "PORTAL_TO_ASSAY_TYPE in scripts/spatial_slides.py",
-              "unmapped_portal_assays": sorted(unmapped)},
-        "counting_rule": "distinct documents (A) and file counts (B) -- different units, "
-                         "stated on the figure"})
+        "A": {"class": "assay_platform", "unit": "papers",
+              "denominator": f"{paper_den} corpus papers"},
+        "B": {"source": "HTAN Data Portal ClickHouse htan_2026_922 via htan CLI",
+              "unit": "patients (distinct demographicsIds on released files)",
+              "denominator": f"{total_p} participants with a released file",
+              "crosswalk": "PORTAL_TO_ASSAY_TYPE / SQL multiIf in the pull",
+              "unmapped_group_participants": unmapped_p},
+        "C": {"unit": "papers vs patients per atlas",
+              "crosswalk": "CENTRE_TO_ATLAS in scripts/spatial_slides.py",
+              "centres_with_no_released_atlas": [c for c, _ in no_atlas]},
+        "counting_rule": "distinct documents (A), distinct patients (B, C); never summed "
+                         "across modality groups because patients overlap"})
 
 
 # ==========================================================================

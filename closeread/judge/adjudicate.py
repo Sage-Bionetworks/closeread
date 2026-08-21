@@ -82,6 +82,7 @@ def run_judge(
     run_id: str,
     settings: Settings,
     judge_model: str | None = None,
+    doc_ids: set[str] | None = None,
     log=print,
 ) -> dict[str, Any] | None:
     handoff = json.loads(batch_mod.find_handoff(run_id, settings).read_text())
@@ -101,6 +102,7 @@ def run_judge(
         r
         for r in read_jsonl(out_dir / "bronze" / f"records_{run_id}.jsonl")
         if r["source_quote"]  # absence records are bookkeeping, not claims
+        and (doc_ids is None or r["doc_id"] in doc_ids)
     ]
     if not records:
         log("no records to judge")
