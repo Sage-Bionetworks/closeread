@@ -116,7 +116,9 @@ def _client():
     if _CLIENT is None:
         from google import genai
 
-        _CLIENT = genai.Client(api_key=gemini_api_key())
+        # 120 s request timeout: without one, a dropped connection (e.g. the
+        # machine sleeping mid-call) hangs sync calls indefinitely.
+        _CLIENT = genai.Client(api_key=gemini_api_key(), http_options={"timeout": 120_000})
     return _CLIENT
 
 

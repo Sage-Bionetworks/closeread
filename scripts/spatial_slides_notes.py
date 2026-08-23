@@ -89,9 +89,11 @@ ru_i = get(s4, panel="B", population="citing, internal", category="data_reuse")
 vis_c = get(s4, panel="C", population="HTAN's own papers")
 vis_e = get(s4, panel="C", population="external authors")
 
-gap_ap = get(s5, panel="A", category="assay_platform")
-jud = [r for r in s5 if r["panel"] == "B"]
-unjudged = [r for r in jud if int(r["n_documents"]) == 0]
+fp_da = get(s5, panel="A", category="data_availability")
+fp_tme = get(s5, panel="A", category="tme_algorithm")
+prec = {r["category"]: r for r in s5 if r["panel"] == "B"}
+measured = [c for c, r in prec.items() if r["denominator_documents"] not in ("", "0")]
+unmeasured = [c for c, r in prec.items() if r["denominator_documents"] in ("", "0")]
 
 md = f"""# Spatial biology in HTAN — what the papers say
 
@@ -106,6 +108,11 @@ slide with a citing paper on it. Slide 7 says how far any of it can be pushed.
 models over the same 157 full-text papers, so summed record counts would
 double-count documents. Every number is a distinct-document or distinct-value
 count. No figure sums records.
+
+**Model status.** The citing full-text passes were re-run on the strong model
+over all 6,072 full-text citing papers; the superseded small-model runs are on
+disk but excluded from every number here. The provenance pass behind engagement
+and data_acquisition was NOT re-run.
 
 ---
 
@@ -251,7 +258,9 @@ HTAN's.
 - Panel B: declared data reuse is
   {pct(n(ru_i), n(ru_i, 'denominator_documents'))} among papers sharing an HTAN
   author versus {pct(n(ru_e), n(ru_e, 'denominator_documents'))} among external
-  authors — roughly a threefold gap on every engagement kind.
+  authors — a {(n(ru_i) / n(ru_i, 'denominator_documents')) / (n(ru_e) / n(ru_e, 'denominator_documents')):.1f}x gap, and it holds
+  across every engagement kind. This is the one panel still built on the
+  mixed-model provenance pass, so it remains a lower bound.
 - Panel C: does the availability text name HTAN, phs002371 or a syn ID?
   {vis_c['n_documents']} of {vis_c['denominator_documents']} of HTAN's own
   spatial papers do; {vis_e['n_documents']} of
@@ -273,20 +282,32 @@ HTAN's.
 
 Show this if there is any time at all. If asked a precision question, go here.
 
-- **Citing counts are floors.** The citing full-text passes ran on the small
-  model. On a 500-document sample it recovers only
-  {float(gap_ap['extra_value']) * 100:.0f}% of the strong model's
-  `assay_platform` records. Panel A has the per-class figures.
-- **Precision is unmeasured.** 0 of the 150 required human gold labels exist
-  (§11.3 unmet). Worse, {len(unjudged)} of {len(jud)} classes never reached the
-  second-model judge at all: {", ".join(sorted(r["category"] for r in unjudged))}
-  have no verdict on any record. Where the judge did run it rejected 5% of
-  `engagement` and 19% of `data_acquisition` records.
+- **The citing pass was re-run on the strong model.** Every citing number in
+  this deck now comes from a single strong-model pass over all 6,072 full-text
+  citing papers. The old "citing counts are floors" caveat is retired.
+- **Panel A is why.** On a judged sample the retired small model produced false
+  positives at {float(fp_da['extra_value']) * 100:.0f}% for data availability and
+  {float(fp_tme['extra_value']) * 100:.0f}% for TME methods — and for TME it
+  produced *more* records than the strong model (1,417 vs 833). It was inventing,
+  not just missing, so the old caveat pointed the wrong way for some classes.
+- **Precision is now measured for two classes.** {len(measured)} of
+  {len(measured) + len(unmeasured)}: data_acquisition
+  {float(prec['data_acquisition']['extra_value']) * 100:.0f}%
+  (n={prec['data_acquisition']['denominator_documents']}) and engagement
+  {float(prec['engagement']['extra_value']) * 100:.0f}%
+  (n={prec['engagement']['denominator_documents']}). All 200 human labels sit on
+  those two. The {len(unmeasured)} classes behind slides 1–5 have no human labels
+  and no judge verdict on any shipped record. One labeller, so no inter-rater
+  agreement.
+- **The provenance pass was not re-run** and is the one place the old model
+  mixing still bites: on the identical 5,071 citing papers the two models found
+  engagement in 568 vs 228 papers, overlapping on 215, and the pass reached only
+  5,265 of 9,753 citing papers.
 - **Reach.** 445 citing papers have no full-text route and 29 preprints sit in
   unfetched requester-pays buckets; both are abstract-only.
-- **The one nobody asks but should:** on the identical 5,071 citing papers the
-  two models found engagement in 568 vs 228 papers, overlapping on only 215.
-  Document-level disagreement is worse than the record-level gap suggests.
+- **The one nobody asks but should:** the corpus is still double-extracted by
+  two models, so no figure in this deck sums records — every number is a
+  distinct-document or distinct-value count.
 
 ---
 
@@ -297,9 +318,10 @@ Show this if there is any time at all. If asked a precision question, go here.
    floor.
 2. *"Why is mass cytometry in a spatial deck?"* It is a suspension assay, kept
    for vocabulary continuity, reported as its own row, never in a spatial total.
-3. *"How accurate is the extraction?"* Unmeasured against human labels. Every
-   record carries a verbatim quotation and character offsets, so any claim is
-   auditable back to source text — but precision is not yet a number.
+3. *"How accurate is the extraction?"* Measured at 86% and 97% for the two
+   provenance classes against 200 human labels; unmeasured for the other seven,
+   which is everything on slides 1–5. Every record carries a verbatim quotation
+   and character offsets, so any claim is auditable back to source text.
 4. *"Can you link a paper to a download?"* For 20 papers. That is the finding.
 """
 

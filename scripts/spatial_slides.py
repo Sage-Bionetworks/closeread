@@ -233,11 +233,13 @@ FIELDS = ["slide", "panel", "population", "category", "n_documents",
 
 CORPUS_RULE = ("Counting rule: distinct documents only — HTAN papers were extracted by two "
                "models, so no figure sums records.")
-C_PRECISION = ("Judge precision is NOT measured against human labels (0 of 150 gold labels; "
-               "design §11.3 unmet) and 7 of 9 extraction classes were never adjudicated at "
-               "all. Every share here is precision-unvalidated.")
-C_FLOOR = ("Citing-side counts are FLOORS: those passes ran on the small model, which recovers "
-           "42–56% of strong-model records for these classes on a 500-document sample.")
+C_PRECISION = ("Precision is measured for 2 of 9 classes only. 200 human gold labels exist, but "
+               "all of them are on engagement (86% precise, n=85) and data_acquisition (97%, "
+               "n=115). The seven classes behind slides 1-5 have no human labels and no judge "
+               "verdict on any shipped record — treat those shares as precision-unvalidated.")
+C_FLOOR = ("The citing full-text passes have been RE-RUN on the strong model over all 6,072 "
+           "full-text citing papers, so these are no longer small-model floors. The superseded "
+           "small-model runs are retained on disk but excluded from every number here.")
 C_REACH = ("29 citing preprints in unfetched requester-pays buckets and 445 citing papers with "
            "no full-text route are abstract-only.")
 
@@ -770,8 +772,9 @@ def slide3(con):
 def slide4(con):
     fig = plt.figure(figsize=(13.33, 7.5))
     deck(fig, "Now the citing literature: who is reading the map",
-         "9,753 papers cite HTAN. Everything on this slide is a lower bound.")
-    gs = fig.add_gridspec(1, 3, left=0.070, right=0.978, top=0.735, bottom=0.165,
+         "9,753 papers cite HTAN. Strong model throughout; panel B is the one "
+         "remaining lower bound.")
+    gs = fig.add_gridspec(1, 3, left=0.070, right=0.978, top=0.700, bottom=0.245,
                           wspace=0.46, width_ratios=[1.25, 1.0, 0.95])
     rows = []
 
@@ -864,9 +867,13 @@ def slide4(con):
     axB.tick_params(length=0)
     axB.grid(axis="x", color=GRID, linewidth=0.7)
     axB.set_axisbelow(True)
-    note = (f"Reuse is declared three times more often by papers with an HTAN author. "
-            f"The provenance pass read {len(attempted):,} of 9,753 citing papers; these bars "
-            f"use the {eden['external'] + eden['internal']:,} of those that are spatial.")
+    r_int = 100.0 * eng.get(("internal", "data_reuse"), 0) / eden["internal"]
+    r_ext = 100.0 * eng.get(("external", "data_reuse"), 0) / eden["external"]
+    note = (f"Declared data reuse is {r_int / r_ext:.1f}x more common among papers with an "
+            f"HTAN author ({r_int:.1f}% vs {r_ext:.1f}%). The provenance pass read "
+            f"{len(attempted):,} of 9,753 citing papers; these bars use the "
+            f"{eden['external'] + eden['internal']:,} that are spatial, and are the only "
+            f"citing numbers here still from a mixed-model pass.")
     titled(axB, "B — What citing papers did", note, wrap=44)
 
     # C -- can you even tell it was HTAN's data?
@@ -912,20 +919,25 @@ def slide4(con):
     axC.set_axisbelow(True)
     note = ("Does the availability text name HTAN, phs002371 or a syn ID? This is "
             "VISIBILITY, not compliance — the denominator is papers that cite HTAN, not "
-            "papers that reused HTAN data. HTAN's own 40% sets the ceiling.")
+            "papers that reused HTAN data. HTAN's own share sets the ceiling.")
     titled(axC, "C — Can you tell it was HTAN?", note, wrap=42)
 
-    footer(fig, f"{C_FLOOR}  {C_PRECISION}  {C_REACH}  Citing a paper is not using its data. "
+    footer(fig, f"{C_FLOOR} Panel B is the exception: the provenance pass behind it was NOT "
+                f"re-run, so it is still mixed-model and still reached only 5,265 of 9,753 "
+                f"citing papers.  {C_PRECISION}  {C_REACH}  Citing a paper is not using its data. "
                 f"Of the 184 citing papers that stated how they got data, only 20 gave a "
                 f"resolvable identifier — 15 dbGaP phs002371 and 5 Synapse/HTAN IDs.")
     save(fig, "s4_who_is_reading", rows, FIELDS, {
         "slide": 4, "population": "9,753 citing papers",
         "A": {"class": "abstract_claim", "model": "gemini-3.1-pro-preview (strong)",
               "denominator": "citing papers 2020-2026 with an abstract record",
-              "note": "not subject to the small-model gap", "judged": False},
+              "note": "strong model throughout", "judged": False},
         "B": {"class": "engagement", "denominator":
               "spatial citing papers the provenance pass attempted", "judged": True,
-              "judge_rejected": "77/1437 = 5.4%"},
+              "judge_rejected": "77/1437 = 5.4%",
+              "human_precision": "86% (72 of 84 labelled correct/incorrect)",
+              "note": "the provenance pass was NOT re-run on the strong model: it is still "
+                      "mixed-model and still only attempted 5,265 of 9,753 citing papers"},
         "C": {"class": "data_availability", "denominator":
               "spatial papers with a data_availability record", "judged": False},
         "counting_rule": "distinct documents only"})
@@ -942,62 +954,92 @@ def slide5(con):
                           wspace=0.62)
     rows = []
 
-    gap = json.load(open(HTAN / "model_gap_500_sample.json"))
-    flat = sorted(((c, v) for p in gap.values() for c, v in p["classes"].items()),
-                  key=lambda kv: kv[1]["small_recall_vs_strong"])
-    n_s = list(gap.values())[0]["n_sample_docs"]
+    # A -- the measured reason the citing passes were re-run. The small model
+    # did not merely miss records; on a judged 500-document sample it produced
+    # false positives at 14-38% per class, and for tme_algorithm it
+    # OVER-produced (1,417 small records against 833 strong).
+    fp = json.load(open(HTAN / "small_model_citing_judged_sample.json"))["classes"]
+    flat = sorted(fp.items(), key=lambda kv: -kv[1]["record_false_positive_rate"])
+    n_judged = sum(v["n_records_judged"] for _, v in flat)
     axA = fig.add_subplot(gs[0, 0])
-    vals = [100 * v["small_recall_vs_strong"] for _, v in flat]
+    vals = [100 * v["record_false_positive_rate"] for _, v in flat]
     axA.barh(range(len(flat)), vals, color=ORANGE, height=0.62)
     axA.set_yticks(range(len(flat)))
     axA.set_yticklabels([c.replace("_", " ") for c, _ in flat], fontsize=10, color=INK)
     axA.invert_yaxis()
-    for i, v in enumerate(vals):
-        axA.text(v + 2, i, f"misses {100 - v:.0f}%", va="center", fontsize=9, color=INK)
-        rows.append(ROW(slide=5, panel="A", population="500-document sample",
-                        category=flat[i][0], n_documents="", denominator_documents=n_s,
-                        extra_measure="small_recall_vs_strong",
-                        extra_value=flat[i][1]["small_recall_vs_strong"]))
-    axA.axvline(100, color=MUTED, linewidth=0.9, linestyle=(0, (3, 3)))
-    axA.set_xlim(0, 138)
-    axA.set_xlabel("small-model recall vs the strong model", fontsize=9, color=MUTED)
+    for i, (c, v) in enumerate(flat):
+        axA.text(vals[i] + 1.2, i, f"{vals[i]:.0f}%  of {v['n_records_judged']:,} judged",
+                 va="center", fontsize=8.6, color=INK)
+        rows.append(ROW(slide=5, panel="A", population="small-model citing sample",
+                        category=c, n_documents=v["n_records_judged"],
+                        denominator_documents=v["n_records_judged"],
+                        extra_measure="record_false_positive_rate",
+                        extra_value=v["record_false_positive_rate"]))
+    axA.set_xlim(0, 62)
+    axA.set_xlabel("false-positive rate of the retired small model", fontsize=9, color=MUTED)
     axA.spines[["top", "right", "left"]].set_visible(False)
     axA.tick_params(length=0)
     axA.grid(axis="x", color=GRID, linewidth=0.7)
     axA.set_axisbelow(True)
-    titled(axA, "A — Citing counts are floors",
-           f"Measured on {n_s} sampled citing papers: how much of what the strong model "
-           f"finds the small model misses. Slide 6 panel A is exempt.", wrap=42)
+    titled(axA, "A — Why the citing pass was re-run",
+           f"{n_judged:,} small-model citing records judged. It was not only missing "
+           f"records — it invented them, and for TME methods it produced more records than "
+           f"the strong model. All citing numbers here now come from the strong model.",
+           wrap=42)
 
-    jr = q(con, f"""SELECT extraction_class, count(*),
-                 sum(CASE WHEN judge_verdict IS NOT NULL THEN 1 ELSE 0 END),
-                 sum(CASE WHEN judge_verdict = 'rejected' THEN 1 ELSE 0 END)
-              FROM read_json_auto('{HTAN / 'silver' / '*.jsonl'}', union_by_name=true)
-              GROUP BY 1 ORDER BY 2 DESC""")
+    # B -- what precision is actually known. 200 human labels exist but they
+    # all sit on the two provenance classes; everything else is unmeasured AND
+    # unadjudicated on its shipped records.
+    con.execute(f"""CREATE OR REPLACE VIEW lab AS
+                    SELECT * FROM read_json_auto('{HTAN / "gold_labels.jsonl"}')""")
+    con.execute(f"""CREATE OR REPLACE VIEW allrec AS SELECT * FROM
+                    read_json_auto('{HTAN / "silver" / "*.jsonl"}', union_by_name=true)""")
+    prec = {c: (ok, bad, un) for c, ok, bad, un in q(con, """
+        SELECT r.extraction_class,
+               sum(CASE WHEN l.human_label = 'correct' THEN 1 ELSE 0 END),
+               sum(CASE WHEN l.human_label = 'incorrect' THEN 1 ELSE 0 END),
+               sum(CASE WHEN l.human_label = 'unsure' THEN 1 ELSE 0 END)
+        FROM lab l JOIN allrec r ON r.record_id = l.record_id
+        GROUP BY 1""")}
+    shipped = q(con, """SELECT 'assay_platform' c UNION ALL SELECT 'data_availability'
+                        UNION ALL SELECT 'cell_typing' UNION ALL SELECT 'object_format'
+                        UNION ALL SELECT 'tme_algorithm' UNION ALL SELECT 'code_availability'
+                        UNION ALL SELECT 'abstract_claim' UNION ALL SELECT 'engagement'
+                        UNION ALL SELECT 'data_acquisition'""")
+    classes = [c for (c,) in shipped]
+    classes.sort(key=lambda c: -(prec.get(c, (0, 0, 0))[0] + prec.get(c, (0, 0, 0))[1]))
     axB = fig.add_subplot(gs[0, 1])
-    sh = [100.0 * r[2] / r[1] for r in jr]
-    axB.barh(range(len(jr)), sh, color=[AQUA if s else GRID for s in sh], height=0.62)
-    axB.set_yticks(range(len(jr)))
-    axB.set_yticklabels([r[0].replace("_", " ") for r in jr], fontsize=10, color=INK)
+    ys, bars, labels = [], [], []
+    for i, c in enumerate(classes):
+        ok, bad, un = prec.get(c, (0, 0, 0))
+        d = ok + bad
+        bars.append(100.0 * ok / d if d else 0.0)
+        labels.append(f"{100.0 * ok / d:.0f}%  measured, n={d}" if d else "not measured")
+        rows.append(ROW(slide=5, panel="B", population="human gold labels", category=c,
+                        n_documents=ok, denominator_documents=d,
+                        extra_measure="human_precision",
+                        extra_value=(round(ok / d, 3) if d else "")))
+        ys.append(i)
+    axB.barh(ys, bars, color=[AQUA if b else GRID for b in bars], height=0.62)
+    axB.set_yticks(ys)
+    axB.set_yticklabels([c.replace("_", " ") for c in classes], fontsize=10, color=INK)
     axB.invert_yaxis()
-    for i, r in enumerate(jr):
-        txt = (f"all {r[1]:,} judged, {100.0 * r[3] / r[2]:.0f}% rejected" if r[2]
-               else f"none of {r[1]:,} judged")
-        axB.text(max(sh[i], 0) + 4, i, txt, va="center", fontsize=8.4, color=INK)
-        rows.append(ROW(slide=5, panel="B", population="all stored records",
-                        category=r[0], n_documents=r[2], denominator_documents=r[1],
-                        extra_measure="records_rejected", extra_value=r[3]))
-    axB.set_xlim(0, 260)
+    for i, t in enumerate(labels):
+        axB.text(max(bars[i], 0) + 3, i, t, va="center", fontsize=8.4,
+                 color=INK if bars[i] else MUTED)
+    axB.set_xlim(0, 235)
     axB.set_xticks([0, 50, 100])
-    axB.set_xlabel("% of records carrying a judge verdict", fontsize=9, color=MUTED)
+    axB.set_xlabel("precision against human labels", fontsize=9, color=MUTED)
     axB.spines[["top", "right", "left"]].set_visible(False)
     axB.tick_params(length=0)
     axB.grid(axis="x", color=GRID, linewidth=0.7)
     axB.set_axisbelow(True)
-    titled(axB, "B — Precision is unmeasured",
-           "0 of the 150 required human gold labels exist (§11.3 unmet). Only two of nine "
-           "classes ever reached the second-model judge; the other seven have no verdict on "
-           "any record.", wrap=42)
+    n_lab = q(con, "SELECT count(*) FROM lab")[0][0]
+    titled(axB, "B — Precision, where it is known",
+           f"{n_lab} human labels exist — past the 150 the design requires — but every one "
+           f"is on the two provenance classes. The seven classes behind slides 1–5 have no "
+           f"human labels and no judge verdict on any shipped record. One labeller, so no "
+           f"inter-rater agreement.", wrap=42)
 
     reach = {(d, s): n for d, s, n in q(con, "SELECT doc_type, oa_status, count(*) "
                                              "FROM documents GROUP BY 1, 2")}
@@ -1043,13 +1085,21 @@ def slide5(con):
            f"and {reach.get(('citing', 'preprint_requester_pays_pending'), 0)} preprints sit "
            f"in unfetched requester-pays buckets. Both are abstract-only.", wrap=42)
 
-    footer(fig, "On the identical 5,071 citing papers the two models found engagement in 568 "
-                "vs 228 papers, overlapping on only 215 — document-level disagreement is worse "
-                "than the record-level gap in panel A suggests. " + CORPUS_RULE)
+    footer(fig, "The provenance pass behind engagement and data_acquisition was NOT re-run on "
+                "the strong model, and it is the one place the old model mixing still bites: on "
+                "the identical 5,071 citing papers the two models found engagement in 568 vs 228 "
+                "papers, overlapping on only 215. It also reached only 5,265 of 9,753 citing "
+                "papers at all. " + CORPUS_RULE)
     save(fig, "s5_how_far_to_trust", rows, FIELDS, {
         "slide": 5,
-        "A": {"source": "model_gap_500_sample.json", "denominator": f"{n_s} sampled citing papers"},
-        "B": {"source": "silver/records_*.jsonl", "denominator": "all stored records per class"},
+        "A": {"source": "small_model_citing_judged_sample.json",
+              "measure": "record-level false-positive rate of the retired small model",
+              "denominator": f"{n_judged:,} judged small-model citing records",
+              "note": "historical justification for the strong-model re-run, not a live "
+                      "caveat on the shipped numbers"},
+        "B": {"source": "gold_labels.jsonl joined to silver records",
+              "measure": "precision against human labels, unsure excluded",
+              "denominator": f"{n_lab} human labels, all on engagement and data_acquisition"},
         "C": {"source": "documents.jsonl", "denominator": "all documents per doc_type"},
         "counting_rule": "this slide counts records on purpose: it is about record provenance"})
 

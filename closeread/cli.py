@@ -96,11 +96,19 @@ def collect(run_id: str) -> None:
 @main.command()
 @click.option("--value-set", required=True)
 @click.option("--community", default="htan")
-def normalise(value_set: str, community: str) -> None:
+@click.option("--consolidate", is_flag=True, help="Second pass over the canonical forms themselves (collapses cross-chunk variants).")
+def normalise(value_set: str, community: str, consolidate: bool) -> None:
     """Stage 6: generate and apply a vocabulary mapping table."""
     from closeread.normalise import run_normalise
 
-    run_normalise(load_community(community), Settings(), value_set)
+    if consolidate:
+        from closeread.extract.batch import STRONG_MODEL
+        from closeread.normalise.vocab import apply_to_silver, consolidate_canonicals
+
+        consolidate_canonicals(Settings(), community, value_set, STRONG_MODEL)
+        apply_to_silver(Settings(), community)
+    else:
+        run_normalise(load_community(community), Settings(), value_set)
 
 
 @main.command()

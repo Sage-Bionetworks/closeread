@@ -164,6 +164,75 @@ def generate_mapping(
     return len(new_rows)
 
 
+def consolidate_canonicals(
+    settings: Settings, community: str, value_set: str, model: str, log=print
+) -> int:
+    """Second-pass consolidation: map the canonical forms themselves.
+
+    The first pass sees values in chunks, so equivalent forms in different
+    chunks can receive different canonicals ("10x scRNA-seq 3'" vs
+    "10x 3' scRNA-seq"). This pass runs over the (much smaller, sorted)
+    canonical set with larger chunks so variants co-occur and collapse. The
+    surface->canonical table is then rewritten by composition; raw record
+    values are untouched and silver rebuilds deterministically."""
+    import datetime as _dt
+    from concurrent.futures import ThreadPoolExecutor
+
+    from closeread.extract.batch import _client
+
+    path = vocab_map_path(settings, community)
+    rows = list(read_jsonl(path)) if path.exists() else []
+    canonicals = sorted({r["canonical_form"] for r in rows if r["value_set"] == value_set})
+    if len(canonicals) < 2:
+        return 0
+    client = _client()
+    chunk_size = 150
+    chunks = [canonicals[i : i + chunk_size] for i in range(0, len(canonicals), chunk_size)]
+
+    def _map_chunk(chunk: list[str]) -> dict[str, str]:
+        import json as _json
+        import time as _time
+
+        delay = 5.0
+        for attempt in range(5):
+            try:
+                resp = client.models.generate_content(
+                    model=model,
+                    contents=_prompt(value_set, chunk),
+                    config={
+                        "response_mime_type": "application/json",
+                        "response_schema": _RESPONSE_SCHEMA,
+                        "temperature": 0,
+                    },
+                )
+                return {m["surface_form"]: m["canonical_form"] for m in _json.loads(resp.text)["mappings"]}
+            except Exception:  # noqa: BLE001
+                if attempt == 4:
+                    return {}
+                _time.sleep(delay)
+                delay *= 2
+        return {}
+
+    remap: dict[str, str] = {}
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        for got in pool.map(_map_chunk, chunks):
+            remap.update(got)
+
+    version = _dt.date.today().isoformat() + "-consolidated"
+    n_changed = 0
+    for r in rows:
+        if r["value_set"] == value_set:
+            new = remap.get(r["canonical_form"], r["canonical_form"])
+            if new != r["canonical_form"]:
+                r["canonical_form"] = new
+                r["mapping_version"] = version
+                n_changed += 1
+    write_jsonl(path, rows)
+    after = len({r["canonical_form"] for r in rows if r["value_set"] == value_set})
+    log(f"{value_set}: consolidated {len(canonicals)} -> {after} canonicals ({n_changed} rows updated)")
+    return n_changed
+
+
 def apply_to_silver(settings: Settings, community: str, log=print) -> None:
     """Rebuild silver from bronze + vocab map + judge verdicts, deterministically.
     Changing a vocabulary rebuilds silver; it never requires re-extraction (§4.3)."""
