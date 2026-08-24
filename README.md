@@ -160,6 +160,12 @@ quotation-scale excerpts with offsets.
   (model_gap_500_sample.json, small_model_citing_judged_sample.json).
 - Absence is recorded, never implied: a document with no availability
   statement contributes an explicit `no_statement` record.
+- Canonical vocabulary state: assay_name and platform received a second-pass
+  consolidation (known imperfections: some near-duplicate canonicals survive,
+  and platform folds some instrument model numbers together); the other six
+  value sets carry first-pass canonicals only. Do not read canonical counts as
+  counts of distinct real-world entities. Top-N figure vocabularies get a
+  targeted head-only consolidation in the analysis phase.
 
 ## Documentation
 
