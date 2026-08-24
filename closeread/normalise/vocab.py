@@ -131,6 +131,7 @@ def generate_mapping(
                         "response_mime_type": "application/json",
                         "response_schema": _RESPONSE_SCHEMA,
                         "temperature": 0,
+                        "thinking_config": {"thinking_budget": 128},
                     },
                 )
                 payload = json.loads(resp.text)
@@ -203,6 +204,9 @@ def consolidate_canonicals(
                         "response_mime_type": "application/json",
                         "response_schema": _RESPONSE_SCHEMA,
                         "temperature": 0,
+                        # String canonicalisation needs no reasoning; thinking
+                        # tokens bill as output and dominated sync-call cost.
+                        "thinking_config": {"thinking_budget": 128},
                     },
                 )
                 return {m["surface_form"]: m["canonical_form"] for m in _json.loads(resp.text)["mappings"]}
