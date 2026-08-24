@@ -115,7 +115,8 @@ def run_collect(run_id: str, settings: Settings, log=print) -> dict[str, Any]:
         n_responses += 1
         finish_reasons[finish or "NONE"] += 1
         tokens_in += usage.get("promptTokenCount") or 0
-        tokens_out += usage.get("candidatesTokenCount") or 0
+        # Thinking tokens bill as output; count them or the cost is understated.
+        tokens_out += (usage.get("candidatesTokenCount") or 0) + (usage.get("thoughtsTokenCount") or 0)
         info = key_index.get(key)
         if info is None:
             log(f"WARNING: response key {key} not in handoff index")

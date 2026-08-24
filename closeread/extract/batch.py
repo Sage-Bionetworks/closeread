@@ -28,6 +28,11 @@ RATES = {
 }
 CHARS_PER_TOKEN = 4.15  # structural, §15
 EST_OUTPUT_TOKENS_PER_REQUEST = 400  # corrected prototype run measured ~350
+# Reasoning ("thinking") tokens bill as output but are NOT in
+# candidatesTokenCount. Measured on this project's runs: the strong model
+# emitted 6-16x its visible output in thinking tokens; the small model none.
+# Ignoring this understated real cost 2.7x ($463 estimated vs $1,236 billed).
+THINKING_MULTIPLIER = {STRONG_MODEL: 8.0, SMALL_MODEL: 0.0}
 
 
 def generation_config(compiled: CompiledPass) -> dict[str, Any]:
@@ -101,7 +106,10 @@ def estimate(lines: list[dict[str, Any]], model: str) -> CostEstimate:
     rate_in, rate_out = RATES.get(model, RATES[STRONG_MODEL])
     chars = sum(len(l["request"]["contents"][0]["parts"][0]["text"]) for l in lines)
     tokens_in = int(chars / CHARS_PER_TOKEN)
-    tokens_out = EST_OUTPUT_TOKENS_PER_REQUEST * len(lines)
+    per_request = EST_OUTPUT_TOKENS_PER_REQUEST * (
+        1 + THINKING_MULTIPLIER.get(model, THINKING_MULTIPLIER[STRONG_MODEL])
+    )
+    tokens_out = int(per_request * len(lines))
     cost = (tokens_in * rate_in + tokens_out * rate_out) / 1e6
     return CostEstimate(len(lines), tokens_in, tokens_out, cost)
 
