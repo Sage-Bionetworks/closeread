@@ -10,7 +10,9 @@ from pydantic import BaseModel, Field
 
 
 def _sha1_16(payload: str) -> str:
-    return hashlib.sha1(payload.encode("utf-8")).hexdigest()[:16]
+    # Not a security primitive: SHA-1 is used only as a short, stable, deterministic
+    # ID generator for record/edge keys. usedforsecurity=False silences Bandit B324.
+    return hashlib.sha1(payload.encode("utf-8"), usedforsecurity=False).hexdigest()[:16]
 
 
 def make_record_id(doc_id: str, extraction_class: str, char_start: int, char_end: int, run_id: str) -> str:
